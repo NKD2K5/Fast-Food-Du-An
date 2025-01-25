@@ -7,43 +7,142 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Fast_Food.styles.css" asp-append-version="true" />
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Fast_Food</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+        <!-- Menu Icon -->
+        <button class="menu-toggle" id="menu-toggle">
+            <ion-icon id="menu-icon" name="arrow-forward"></ion-icon> <!-- Biểu tượng mặc định -->
+        </button>
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <ul class="nav flex-column">
+                <nav>
+                    <a class="navbar-brand" href="#">
+                        <img src="~/img/Poly food.png" alt="Poly Food" class="nav-logo" />
+                    </a>
+                </nav>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="MonAn" asp-action="Index" asp-route-LoaiSanPham="Ga">
+                        <i class="fas fa-drumstick-bite"></i> Gà
+                    </a>
+                </li>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Kem">
+                        <ion-icon name="ice-cream-outline"></ion-icon> Kem
+                    </a>
+                </li>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Burger">
+                        <ion-icon name="fast-food-outline"></ion-icon> Burger
+                    </a>
+                </li>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Pizza">
+                        <ion-icon name="pizza-outline"></ion-icon> Pizza
+                    </a>
+                </li>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Khoai">
+                        <ion-icon name="fast-food-outline"></ion-icon> Khoai Chiên
+                    </a>
+                </li>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="NƯớc Uống">
+                        <ion-icon name="beer-outline"></ion-icon> Nước Uống
+                    </a>
+                </li>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Combo">
+                        <ion-icon name="restaurant-outline"></ion-icon> Combo
+                    </a>
+                </li>
+                <li class="nav-item p-2">
+                    <a class="nav-link" asp-controller="DangNhap" asp-action="LienHe">
+                        <ion-icon name="call-outline"></ion-icon> Liên Hệ
+                    </a>
+                </li>
+            </ul>
+            @if (Context.Session.GetString("TenKhachHang") != null)
+            {
+                <button class="btn btn-danger mt-3 w-100 d-flex align-items-center justify-content-center">
+                    <a href="/DangNhap/Logout" class="text-white text-decoration-none d-flex align-items-center">
+                        <ion-icon name="log-out-outline" class="me-2"></ion-icon> Đăng Xuất
+                    </a>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
+            }
+            else
+            {
+                <button class="btn btn-primary mt-3 w-100 d-flex align-items-center justify-content-center">
+                    <a href="/DangNhap/Login" class="text-white text-decoration-none d-flex align-items-center">
+                        <ion-icon name="log-out-outline" class="me-2"></ion-icon> Đăng Nhập
+                    </a>
+                </button>
+            }
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
+    <!-- Footer -->
+    <footer class="footer text-muted">
+        <div class="container text-center">
             &copy; 2025 - Fast_Food - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuIcon = document.getElementById('menu-icon');
+            const mainContent = document.querySelector('.main-content');
+
+            // Kiểm tra trạng thái sidebar từ localStorage (lưu trữ trạng thái mở/đóng)
+            if (localStorage.getItem('sidebarActive') === 'true') {
+                sidebar.classList.add('active');
+                mainContent.style.marginLeft = '250px';
+                menuToggle.style.left = '260px';
+                menuIcon.setAttribute('name', 'arrow-back');
+            }
+
+            // Toggle trạng thái sidebar khi nhấn vào menu-toggle
+            menuToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('active');
+
+                if (sidebar.classList.contains('active')) {
+                    mainContent.style.marginLeft = '250px'; // Di chuyển nội dung chính
+                    menuToggle.style.left = '260px'; // Di chuyển nút toggle
+                    menuIcon.setAttribute('name', 'arrow-back'); // Biểu tượng khi sidebar mở
+                    // Lưu trạng thái mở vào localStorage
+                    localStorage.setItem('sidebarActive', 'true');
+                } else {
+                    mainContent.style.marginLeft = '0'; // Trả lại nội dung chính
+                    menuToggle.style.left = '20px'; // Trả lại vị trí nút toggle
+                    menuIcon.setAttribute('name', 'arrow-forward'); // Biểu tượng khi sidebar đóng
+                    // Lưu trạng thái đóng vào localStorage
+                    localStorage.setItem('sidebarActive', 'false');
+                }
+            });
+
+            // Logout function
+            function Logout() {
+                window.location.href = '/Account/Logout';
+            }
+        });
+    </script>
 </body>
 </html>

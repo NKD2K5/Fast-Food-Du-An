@@ -1,83 +1,48 @@
 ﻿@model IEnumerable<Fast_Food.Models.MonAn>
 
-@{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.LoaiSanPham)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TenMon)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Gia)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SoLuong)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayTao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayCapNhat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ChiTietFood)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HinhAnh)
-            </th>
-            <th></th>
+            @* <th>Loại Sản Phẩm</th> *@
+            <th>Tên Món</th>
+            <th>Giá</th>
+            <th>Số Lượng</th>
+            <th>Trạng Thái</th>
+            <th>Ngày Tạo</th>
+            <th>Ngày Cập Nhật</th>
+            <th>Chi Tiết</th>
+            <th>Hình Ảnh</th>
+            <th>Hành Động</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.LoaiSanPham)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TenMon)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Gia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SoLuong)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThai)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NgayTao)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NgayCapNhat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ChiTietFood)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HinhAnh)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaMon">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaMon">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaMon">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                @* <td>@item.LoaiSanPham</td> *@
+                <td>@item.TenMon</td>
+                <td>@item.Gia</td>
+                <td>@item.SoLuong</td>
+                <td>@item.TrangThai</td>
+                <td>@item.NgayTao</td>
+                <td>@item.NgayCapNhat</td>
+                <td>@item.ChiTietFood</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                    {
+                        <img src="@item.HinhAnh" alt="Hình Ảnh" width="100" />
+                    }
+                    else
+                    {
+                        <span>Không có ảnh</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.MaMon">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.MaMon">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.MaMon">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

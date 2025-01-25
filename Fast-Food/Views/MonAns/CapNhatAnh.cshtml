@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Cập Nhật Ảnh";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="CapNhatAnh" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="HinhAnh">Chọn ảnh mới:</label>
+        <input type="file" name="HinhAnh" id="HinhAnh" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Cập Nhật Ảnh</button>
+</form>

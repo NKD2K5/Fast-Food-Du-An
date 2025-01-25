@@ -38,10 +38,10 @@ namespace Fast_Food
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=DangNhap}/{action=Login}/{id?}");
+                pattern: "{controller=MonAns}/{action=Index}/{id?}");
 
             app.Run();
         }
     }
 }
- 
+   

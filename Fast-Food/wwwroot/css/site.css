@@ -1,22 +1,137 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
+﻿/* General Body Styling */
 body {
-  margin-bottom: 60px;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    padding-top: 50px; /* Đảm bảo không gian cho navbar */
+}
+
+/* Sidebar Styling */
+.sidebar {
+    position: fixed;
+    left: -250px; /* Mặc định ẩn sidebar */
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background: #343a40;
+    color: white;
+    padding: 20px;
+    padding-top: 80px; /* Đẩy nội dung xuống dưới, tránh đè lên nút menu */
+    transition: left 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Hiệu ứng mượt */
+    z-index: 1000;
+}
+
+    .sidebar.active {
+        left: 0; /* Hiển thị sidebar khi active */
+    }
+
+/* Main Content Styling */
+.main-content {
+    margin-left: 0; /* Không gian mặc định khi sidebar ẩn */
+    transition: margin-left 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Hiệu ứng mượt */
+    padding-top: 60px; /* Khoảng cách từ navbar */
+    z-index: 500;
+}
+
+/* Khi sidebar mở */
+.sidebar.active + .main-content {
+    margin-left: 250px; /* Nội dung chính dịch chuyển */
+}
+
+/* Menu Toggle Button */
+.menu-toggle {
+    position: fixed; /* Nút menu cố định trên màn hình */
+    top: 20px; /* Khoảng cách từ trên xuống */
+    left: 20px; /* Khoảng cách từ trái */
+    z-index: 1100; /* Hiển thị trên sidebar */
+    font-size: 1.8rem; /* Kích thước biểu tượng */
+    background: none; /* Loại bỏ màu nền */
+    border: none; /* Loại bỏ viền */
+    color: #343a40; /* Màu biểu tượng */
+    cursor: pointer; /* Thay đổi con trỏ thành dạng tay khi rê chuột */
+    transition: left 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Hiệu ứng mượt */
+}
+
+    .menu-toggle ion-icon {
+        font-size: 1.8rem;
+    }
+
+/* Khi sidebar mở, nút menu-toggle di chuyển */
+.sidebar.active + .menu-toggle {
+    left: 260px; /* Đẩy nút ra ngoài khi sidebar mở */
+}
+
+/* Sidebar Nav Link Styling */
+.sidebar .nav-link {
+    color: #ffffff;
+    padding: 10px 20px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s ease; /* Hiệu ứng hover mượt */
+}
+
+    .sidebar .nav-link:hover {
+        background-color: #6c757d;
+        border-radius: 5px; /* Góc bo tròn */
+    }
+
+    /* Sidebar Icons */
+    .sidebar .nav-link ion-icon {
+        font-size: 1.5rem;
+        margin-right: 10px; /* Khoảng cách giữa icon và text */
+    }
+
+/* Logo Styling */
+/* Logo Styling */
+.navbar-brand .nav-logo {
+    height: 120px; /* Chiều cao lớn hơn cho logo */
+    max-height: 150px; /* Đảm bảo logo không quá lớn */
+    width: auto; /* Giữ tỷ lệ của logo */
+    object-fit: contain; /* Đảm bảo logo không bị méo */
+    display: block; /* Giúp logo luôn là một khối riêng */
+    margin: 0 auto; /* Căn giữa logo */
+    border-radius: 15px; /* Làm mềm các góc cạnh nếu logo hình vuông */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Thêm bóng mờ để logo nổi bật */
+    transition: transform 0.3s ease-in-out; /* Hiệu ứng mượt khi hover */
+}
+    /* Hiệu ứng khi hover vào logo */
+    .navbar-brand .nav-logo:hover {
+        transform: scale(1.1); /* Phóng to nhẹ logo */
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Tăng bóng mờ khi hover */
+    }
+
+
+/* Collapsed Sidebar */
+.sidebar.collapsed {
+    width: 80px; /* Thu gọn sidebar */
+    left: 0; /* Giữ sidebar mở */
+}
+
+    .sidebar.collapsed .nav-link {
+        text-align: center; /* Canh giữa icon */
+    }
+
+        .sidebar.collapsed .nav-link span {
+            display: none; /* Ẩn văn bản khi thu gọn */
+        }
+
+        .sidebar.collapsed .nav-link ion-icon {
+            margin-right: 0; /* Loại bỏ khoảng cách icon */
+        }
+
+/* Navbar Styling */
+.navbar {
+    position: relative;
+    z-index: 900; /* Đảm bảo navbar luôn ở phía trên nội dung */
+}
+
+/* Footer Styling */
+footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-top: 1px solid #dee2e6;
 }
