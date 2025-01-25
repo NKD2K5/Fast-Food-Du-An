@@ -46,3 +46,19 @@
         }
     </tbody>
 </table>
+<nav aria-label="Page navigation example" class="d-flex justify-content-center mt-4">
+    <ul class="pagination">
+        <li class="page-item @(ViewBag.Pager.CurrentPage == 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-pg="@(ViewBag.Pager.CurrentPage - 1)" asp-route-timkiem="@ViewBag.TimKiem">Previous</a>
+        </li>
+        @for (int i = ViewBag.Pager.StartPage; i <= ViewBag.Pager.EndPage; i++)
+        {
+            <li class="page-item @(i == ViewBag.Pager.CurrentPage ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-pg="@i" asp-route-timkiem="@ViewBag.TimKiem">@i</a>
+            </li>
+        }
+        <li class="page-item @(ViewBag.Pager.CurrentPage == ViewBag.Pager.TotalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-pg="@(ViewBag.Pager.CurrentPage + 1)" asp-route-timkiem="@ViewBag.TimKiem">Next</a>
+        </li>
+    </ul>
+</nav>

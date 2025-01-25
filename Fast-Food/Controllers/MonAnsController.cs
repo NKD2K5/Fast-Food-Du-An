@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Fast_Food.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Fast_Food.Controllers
 {
@@ -19,17 +20,30 @@ namespace Fast_Food.Controllers
         }
 
         // GET: MonAns
-        public async Task<IActionResult> Index(string LoaiSanPham)
+        public async Task<IActionResult> Index(string LoaiSanPham ,decimal? fromPrice, decimal? toPrice, int pg = 1)
         {
-            IQueryable<MonAn> monAnQuery = _context.MonAns;
+            const int pageSize = 5; // Số món ăn hiển thị trên mỗi trang
+            IQueryable<MonAn> monAnQuery = _context.MonAns; // Lấy tất cả món ăn
 
-            if (!string.IsNullOrEmpty(LoaiSanPham))
+            if (!string.IsNullOrEmpty(LoaiSanPham)) // Nếu có lọc theo loại món ăn hoặc combo
             {
                 // Lọc theo loại món ăn hoặc combo
-                monAnQuery = monAnQuery.Where(m => m.LoaiSanPham == LoaiSanPham);
+                monAnQuery = monAnQuery.Where(m => m.LoaiSanPham == LoaiSanPham); 
             }
+            
+            var monAns = await monAnQuery.ToListAsync(); // Lấy danh sách món ăn sau khi lọc
 
-            var monAns = await monAnQuery.ToListAsync();
+
+
+            int recsCount = await monAnQuery.CountAsync();
+
+            var pager = new demdanhsach(recsCount, pg, pageSize);
+            ViewBag.Pager = pager;
+            ViewBag.FromPrice = fromPrice;
+            ViewBag.ToPrice = toPrice;
+
+            // Phân trang
+            var products = await monAnQuery.Skip((pg - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return View(monAns);
         }
@@ -63,17 +77,17 @@ namespace Fast_Food.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaMon,LoaiSanPham,TenMon,Gia,SoLuong,TrangThai,NgayTao,NgayCapNhat,ChiTietFood,HinhAnh")] MonAn monAn)
+        public async Task<IActionResult> Create([Bind("MaMon,LoaiSanPham,TenMon,Gia,SoLuong,TrangThai,NgayTao,NgayCapNhat,ChiTietFood")] MonAn monAn, IFormFile HinhAnh)
         {
             // Kiểm tra nếu LoaiSanPham là "0" (Lựa Chọn Món Ăn)
             if (monAn.LoaiSanPham == "0")
             {
                 ModelState.AddModelError("LoaiSanPham", "Vui lòng chọn loại món ăn hợp lệ.");
-                ViewBag.LoaiSanPhamList = new List<SelectListItem>
+                ViewBag.LoaiSanPhamList = new List<SelectListItem> 
                 {
                     new SelectListItem { Value = "0", Text = "---Lựa Chọn Món Ăn---" },
-                    new SelectListItem { Value = "1", Text = "Gà" },
-                    new SelectListItem { Value = "2", Text = "Kem" },
+                    new SelectListItem { Value = "1", Text = "Gà"},
+                    new SelectListItem { Value = "2", Text = "Kem"},
                     new SelectListItem { Value = "3", Text = "Burger" },
                     new SelectListItem { Value = "4", Text = "Pizza" },
                     new SelectListItem { Value = "5", Text = "Khoai" },
@@ -86,8 +100,41 @@ namespace Fast_Food.Controllers
             // Nếu tất cả các điều kiện hợp lệ, tiếp tục thêm sản phẩm
             if (ModelState.IsValid)
             {
+                // Xử lý upload ảnh
+                if (HinhAnh != null && HinhAnh.Length > 0)
+                {
+                    // Lấy đường dẫn thư mục lưu trữ ảnh
+                    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/monan");
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    // Đặt tên file (tên món + phần mở rộng)
+                    var fileExtension = Path.GetExtension(HinhAnh.FileName);
+                    var fileName = $"{Guid.NewGuid()}{fileExtension}";
+
+                    // Đường dẫn đầy đủ của file
+                    var filePath = Path.Combine(folderPath, fileName);
+
+                    // Lưu file vào thư mục
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await HinhAnh.CopyToAsync(stream);
+                    }
+
+                    // Gán đường dẫn file ảnh vào thuộc tính của món ăn
+                    monAn.HinhAnh = $"img/monan/{fileName}";
+                }
+
+                // Chuyển DateTime sang DateOnly (nullable)
+                monAn.NgayTao = DateOnly.FromDateTime(DateTime.Now);  // Chuyển DateTime sang DateOnly
+                monAn.NgayCapNhat = DateOnly.FromDateTime(DateTime.Now);  // Chuyển DateTime sang DateOnly
+
+                // Thêm món ăn vào cơ sở dữ liệu
                 _context.Add(monAn);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -106,48 +153,6 @@ namespace Fast_Food.Controllers
 
             return View(monAn);
         }
-
-
-        public IActionResult CapNhatAnh()
-        {
-            return View();
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CapNhatAnh(IFormFile hinhAnhFile, int maMon)
-        {
-            if (hinhAnhFile != null && hinhAnhFile.Length > 0)
-            {
-                // Lấy đường dẫn thư mục để lưu ảnh
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", hinhAnhFile.FileName);
-                Console.WriteLine($"File Path: {filePath}");  // Log để kiểm tra đường dẫn
-
-                // Lưu file ảnh vào thư mục
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await hinhAnhFile.CopyToAsync(stream);
-                }
-
-                // Cập nhật đường dẫn ảnh trong cơ sở dữ liệu
-                var monAn = await _context.MonAns.FirstOrDefaultAsync(m => m.MaMon == maMon);
-                if (monAn != null)
-                {
-                    monAn.HinhAnh = "/images/" + hinhAnhFile.FileName;  // Cập nhật đường dẫn ảnh
-                    _context.Update(monAn);
-                    await _context.SaveChangesAsync();
-                }
-
-                // Quay lại trang chi tiết món ăn (hoặc trang nào đó)
-                return RedirectToAction("Details", new { id = maMon });
-            }
-            else
-            {
-                // Nếu không có ảnh được tải lên, bạn có thể thêm thông báo lỗi
-                ModelState.AddModelError("", "Vui lòng chọn một ảnh để tải lên.");
-                return View();
-            }
-        }
-
 
         // GET: MonAns/Edit/5
         public async Task<IActionResult> Edit(int? id)
