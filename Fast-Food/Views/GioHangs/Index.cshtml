@@ -40,7 +40,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.TenSanPham)
+                    @Html.DisplayFor(modelItem => item.MaMonNavigation.TenMon)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Gia)

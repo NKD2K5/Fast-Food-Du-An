@@ -47,26 +47,51 @@ namespace Fast_Food.Controllers
         // GET: ChiTietComboes/Create
         public IActionResult Create()
         {
-            ViewData["MaMon"] = new SelectList(_context.MonAns, "MaMon", "MaMon");
+            // Truyền danh sách Combo (Món ăn loại Combo)
+            ViewData["MaMon"] = new SelectList(_context.MonAns
+                .Where(m => m.LoaiSanPham == "Combo")
+                .Select(m => new { m.MaMon, m.TenMon }), "MaMon", "TenMon");
+
+            // Truyền danh sách Món ăn (Món ăn thường)
+            ViewData["MaMonItems"] = new SelectList(_context.MonAns
+                .Where(m => m.LoaiSanPham != "Combo")
+                .Select(m => new { m.MaMon, m.TenMon }), "MaMon", "TenMon");
+
             return View();
         }
 
         // POST: ChiTietComboes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("MaCombo,MaMon")] ChiTietCombo chiTietCombo)
         {
             if (ModelState.IsValid)
             {
+                // Giả sử MaCombo là MaMon nếu liên kết trực tiếp
+                chiTietCombo.MaCombo = chiTietCombo.MaMon;
+
+                // Thêm vào cơ sở dữ liệu
                 _context.Add(chiTietCombo);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index)); // Điều hướng về trang Index sau khi thêm
             }
-            ViewData["MaMon"] = new SelectList(_context.MonAns, "MaMon", "MaMon", chiTietCombo.MaMon);
-            return View(chiTietCombo);
+
+            // Nếu Model không hợp lệ, truyền lại dữ liệu vào dropdown
+            ViewData["MaMon"] = new SelectList(_context.MonAns
+                .Where(m => m.LoaiSanPham == "Combo")
+                .Select(m => new { m.MaMon, m.TenMon }),
+                "MaMon", "TenMon", chiTietCombo.MaMon); // Gán giá trị đã chọn vào dropdown
+
+            ViewData["MaMonItems"] = new SelectList(_context.MonAns
+                .Where(m => m.LoaiSanPham == "MonAn")
+                .Select(m => new { m.MaMon, m.TenMon }),
+                "MaMon", "TenMon");
+
+            return View(chiTietCombo); // Trả lại View với Model đã được gán giá trị
         }
+
+
+
 
         // GET: ChiTietComboes/Edit/5
         public async Task<IActionResult> Edit(int? id)

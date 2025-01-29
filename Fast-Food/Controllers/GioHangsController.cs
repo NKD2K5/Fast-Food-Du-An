@@ -21,9 +21,24 @@ namespace Fast_Food.Controllers
         // GET: GioHangs
         public async Task<IActionResult> Index()
         {
-            var doAnStoreContext = _context.GioHangs.Include(g => g.MaComboNavigation).Include(g => g.MaKhachHangNavigation).Include(g => g.MaMonNavigation);
-            return View(await doAnStoreContext.ToListAsync());
+            var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
+
+            if (maKhachHang == null)
+            {
+                return RedirectToAction("Login", "DangNhap");
+            }
+
+            int maKH = int.Parse(maKhachHang);
+
+            var gioHangData = await _context.GioHangs
+                .Include(g => g.MaKhachHangNavigation) // Bao gồm thông tin khách hàng
+                .Include(g => g.MaMonNavigation) // Bao gồm thông tin món ăn
+                .Where(g => g.MaKhachHang == maKH)
+                .ToListAsync();
+
+            return View(gioHangData);
         }
+
 
         // GET: GioHangs/Details/5
         public async Task<IActionResult> Details(int? id)
