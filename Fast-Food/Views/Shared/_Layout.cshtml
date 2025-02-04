@@ -13,6 +13,26 @@
 </head>
 <body>
     <header>
+        <div class="account-icon-container">
+            @if (Context.Session.GetString("TenKhachHang") != null)
+            {
+                <a href="@Url.Action("Edit","KhachHangs")" class="account-icon">
+                    <i class="fas fa-user-circle"></i> <!-- Biểu tượng tài khoản -->
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("Login", "DangNhap")" class="account-icon">
+                    <i class="fas fa-user"></i> <!-- Biểu tượng tài khoản khi chưa đăng nhập -->
+                </a>
+            }
+        </div>
+        <!-- Icon Giỏ Hàng -->
+        <a href="@Url.Action("Index", "GioHangs")" class="cart-icon">
+            <i class="fas fa-shopping-cart"></i>
+            <!-- Hiển thị số lượng sản phẩm trong giỏ hàng -->
+            <span class="cart-badge">@ViewBag.SoLuongGioHang</span>
+        </a>
         <!-- Menu Icon -->
         <button class="menu-toggle" id="menu-toggle">
             <ion-icon id="menu-icon" name="arrow-forward"></ion-icon> <!-- Biểu tượng mặc định -->

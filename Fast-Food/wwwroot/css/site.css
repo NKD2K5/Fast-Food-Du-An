@@ -135,3 +135,54 @@ footer {
     color: #6c757d;
     border-top: 1px solid #dee2e6;
 }
+/*icon giỏ hàng ở dưới cùng bên phải*/
+.cart-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff6600;
+    color: white;
+    padding: 15px;
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    font-size: 24px;
+}
+
+.cart-icon:hover {
+    background: #e65c00;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: red;
+    color: white;
+    font-size: 14px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+/*icon acc */
+/* Đảm bảo rằng phần tử ở góc phải */
+.account-icon-container {
+    position: fixed; /* Để cố định vị trí */
+    top: 10px; /* Cách từ trên cùng */
+    right: 10px; /* Cách từ bên phải */
+    z-index: 1000; /* Đảm bảo nó nằm trên các phần tử khác */
+}
+
+.account-icon {
+    font-size: 24px; /* Kích thước của icon */
+    color: #333; /* Màu sắc của icon */
+    text-decoration: none;
+}
+
+    .account-icon:hover {
+        color: #007bff; /* Màu khi hover */
+    }

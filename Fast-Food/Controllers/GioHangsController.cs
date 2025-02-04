@@ -35,7 +35,7 @@ namespace Fast_Food.Controllers
                 .Include(g => g.MaMonNavigation) // Bao gồm thông tin món ăn
                 .Where(g => g.MaKhachHang == maKH)
                 .ToListAsync();
-
+            ViewBag.SoLuongGioHang = gioHangData.Sum(x => x.SoLuong);
             return View(gioHangData);
         }
 

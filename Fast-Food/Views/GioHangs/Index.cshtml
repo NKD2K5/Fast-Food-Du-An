@@ -1,71 +1,49 @@
 ﻿@model IEnumerable<Fast_Food.Models.GioHang>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Giỏ Hàng";
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+<h1>Giỏ Hàng</h1>
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TenSanPham)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Gia)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SoLuong)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GhiChu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MaComboNavigation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MaKhachHangNavigation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MaMonNavigation)
-            </th>
-            <th></th>
+            <th>Tên Sản Phẩm</th>
+            <th>Giá</th>
+            <th>Số Lượng</th>
+            <th>Ghi Chú</th>
+            <th>Mã Sản Phẩm</th>
+            <th>Khách Hàng</th>
+            <th>Hành Động</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                    @Html.DisplayFor(modelItem => item.MaMonNavigation.TenMon)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Gia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SoLuong)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GhiChu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaComboNavigation.MaMon)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaKhachHangNavigation.MaKhachHang)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaMonNavigation.MaMon)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaGioHang">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaGioHang">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaGioHang">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.MaGioHang" class="text-decoration-none">
+						@item.MaMonNavigation.TenMon
+                    </a>
+                </td>
+                <td>@Html.DisplayFor(modelItem => item.Gia)</td>
+                <td>@Html.DisplayFor(modelItem => item.SoLuong)</td>
+                <td>@Html.DisplayFor(modelItem => item.GhiChu)</td>
+                <td>
+                    @if (item.MaCombo != null)
+                    {
+                        @Html.DisplayFor(modelItem => item.MaComboNavigation.MaMon) <!-- Hiển thị tên combo -->
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(modelItem => item.MaMonNavigation.MaMon) <!-- Hiển thị tên món ăn -->
+                    }
+                </td>
+                <td>@Html.DisplayFor(modelItem => item.MaKhachHangNavigation.TenKhachHang)</td>
+                <td>
+                    <a asp-action="Delete" asp-route-id="@item.MaGioHang">Xóa</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

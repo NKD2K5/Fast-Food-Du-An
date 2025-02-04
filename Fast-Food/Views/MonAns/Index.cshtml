@@ -63,7 +63,7 @@
                asp-action="Index"
                asp-route-pg="@(ViewBag.Pager.CurrentPage - 1)"
                asp-route-loaisanpham="@ViewBag.LoaiSanPham"
-               asp-route-timkiem="@ViewBag.TimKiem">Previous</a>
+               asp-route-timkiem="@ViewBag.TimKiem"><ion-icon name="chevron-back-outline"></ion-icon></a>
         </li>
 
         <!-- Các trang -->
@@ -84,7 +84,7 @@
                asp-action="Index"
                asp-route-pg="@(ViewBag.Pager.CurrentPage + 1)"
                asp-route-loaisanpham="@ViewBag.LoaiSanPham"
-               asp-route-timkiem="@ViewBag.TimKiem">Next</a>
+               asp-route-timkiem="@ViewBag.TimKiem"><ion-icon name="chevron-forward-outline"></ion-icon></a>
         </li>
     </ul>
 </nav>
