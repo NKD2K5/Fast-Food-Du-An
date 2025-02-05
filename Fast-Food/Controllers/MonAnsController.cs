@@ -104,6 +104,70 @@ using System.Security.Claims;
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        public IActionResult BuyNow(int id)
+        {
+            var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
+
+            if (string.IsNullOrEmpty(maKhachHang))
+            {
+                return RedirectToAction("Login", "DangNhap"); // Chuyển hướng nếu chưa đăng nhập
+            }
+
+            var khachHang = _context.KhachHangs
+                .FirstOrDefault(kh => kh.MaKhachHang == int.Parse(maKhachHang));
+
+            if (khachHang == null)
+            {
+                return BadRequest("Không tìm thấy thông tin khách hàng.");
+            }
+
+            var monAn = _context.MonAns.Find(id);
+            if (monAn == null || monAn.SoLuong < 1)
+            {
+                return BadRequest("Sản phẩm không còn hàng.");
+            }
+
+            // Tạo hóa đơn mới với thông tin khách hàng
+            var hoaDon = new HoaDon
+            {
+                MaKhachHang = khachHang.MaKhachHang,
+                ThoiGianDat = DateTime.Now,
+                TrangThaiDonHang = "Chờ xác nhận",
+                TrangThaiThanhToan = "Chưa thanh toán",
+                SdtlienHe = khachHang.SoDienThoai, // Lấy số điện thoại từ khách hàng
+                DiaChiGiaoHang = khachHang.DiaChi, // Lấy địa chỉ từ khách hàng
+                DanhGia = 0,
+                ChiTietHoaDons = new List<ChiTietHoaDon>()
+            };
+
+            _context.HoaDons.Add(hoaDon);
+            _context.SaveChanges(); // Lưu để có MaHoaDon
+
+            // Thêm sản phẩm vào chi tiết hóa đơn
+            var chiTietHoaDon = new ChiTietHoaDon
+            {
+                MaHoaDon = hoaDon.MaHoaDon,
+                MaMon = id,
+                SoLuong = 1,
+                Gia = monAn.Gia
+            };
+
+            _context.ChiTietHoaDons.Add(chiTietHoaDon);
+
+            // Cập nhật số lượng sản phẩm
+            monAn.SoLuong -= 1;
+            if (monAn.SoLuong == 0)
+            {
+                monAn.TrangThai = false; // Cập nhật trạng thái hết hàng
+            }
+
+            _context.SaveChanges();
+
+            return RedirectToAction("Details", "HoaDons", new { id = hoaDon.MaHoaDon });
+        }
+
+
 
         // GET: MonAns/Details/5
         public async Task<IActionResult> Details(int? id)

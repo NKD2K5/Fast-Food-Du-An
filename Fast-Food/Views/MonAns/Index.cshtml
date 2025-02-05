@@ -47,10 +47,16 @@
                     </form>
                 </td>
                 <td>
+                    <form asp-controller="MonAns" asp-action="BuyNow" method="post">
+                        <input type="hidden" name="id" value="@item.MaMon" />
+                        <button type="submit" class="btn btn-success">Mua ngay</button>
+                    </form>
+                </td>
+@*                 <td>
 					<a asp-action="Edit" asp-route-id="@item.MaMon">Edit</a> |
 					<a asp-action="Details" asp-route-id="@item.MaMon">Details</a> |
 					<a asp-action="Delete" asp-route-id="@item.MaMon">Delete</a>
-                </td>
+                </td> *@
             </tr>
         }
     </tbody>

@@ -13,19 +13,24 @@
 </head>
 <body>
     <header>
+        @{
+            var maKhachHang = Context.Session.GetString("MaKhachHang");
+            var tenKhachHang = Context.Session.GetString("TenKhachHang");
+        }
+
         <div class="account-icon-container">
-            @if (Context.Session.GetString("TenKhachHang") != null)
-            {
-                <a href="@Url.Action("Edit","KhachHangs")" class="account-icon">
-                    <i class="fas fa-user-circle"></i> <!-- Biểu tượng tài khoản -->
-                </a>
-            }
-            else
-            {
-                <a href="@Url.Action("Login", "DangNhap")" class="account-icon">
-                    <i class="fas fa-user"></i> <!-- Biểu tượng tài khoản khi chưa đăng nhập -->
-                </a>
-            }
+            <div class="account-dropdown">
+                <div class="account-icon">
+                    <i class="fas fa-user-circle"></i>
+                    <span>@tenKhachHang</span>
+                </div>
+
+                <div class="dropdown-menu">
+                    <a href="@Url.Action("Edit", "KhachHangs", new { id = maKhachHang })">Thông tin cá nhân</a>
+                    <a href="@Url.Action("Index", "HoaDons", new { id = maKhachHang })">Đơn mua</a>
+                    <a href="@Url.Action("Logout", "DangNhap")">Đăng xuất</a>
+                </div>
+            </div>
         </div>
         <!-- Icon Giỏ Hàng -->
         <a href="@Url.Action("Index", "GioHangs")" class="cart-icon">

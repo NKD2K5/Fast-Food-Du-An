@@ -13,77 +13,89 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.ThoiGianDat)
+                Tên Nhân Viên
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ThoiGianKetThuc)
+                Món Ăn Đặt
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TrangThaiDonHang)
+               Thời Gian Đặt
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TrangThaiThanhToan)
+                Thời Gian Kết Thúc
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.SdtlienHe)
+                Trang Thái Đơn Hàng
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.DiaChiGiaoHang)
+				Trạng Thái Thanh Toán
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.DanhGia)
+				Số Điện Thoại Liên Hệ
             </th>
             <th>
+				Địa Chỉ Giao Hàng
+            <th>
+                Đánh Giá
+            </th>
+@*             <th>
                 @Html.DisplayNameFor(model => model.MaKhachHangNavigation)
-            </th>
+            </th> *@
             <th>
-                @Html.DisplayNameFor(model => model.MaNhanVienNavigation)
+                Mã Giảm Giá 
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MaVoucherNavigation)
-            </th>
-            <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ThoiGianDat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ThoiGianKetThuc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThaiDonHang)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThaiThanhToan)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SdtlienHe)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DiaChiGiaoHang)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DanhGia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaKhachHangNavigation.MaKhachHang)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaNhanVienNavigation.MaNhanVien)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaVoucherNavigation.MaVoucher)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaHoaDon">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaHoaDon">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaHoaDon">Delete</a>
-            </td>
-        </tr>
-}
+            @foreach (var item in Model)
+            {
+            <tr>
+                <td>
+                        @Html.DisplayFor(modelItem => item.MaNhanVienNavigation.TenNhanVien)
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.MaHoaDon">Chi Tiết Hóa Đơn</a>
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.ThoiGianDat)
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.ThoiGianKetThuc)
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.TrangThaiDonHang)
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.TrangThaiThanhToan)
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.SdtlienHe)
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.DiaChiGiaoHang)
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.DanhGia)
+                </td>
+                <td>
+                        @Html.DisplayFor(modelItem => item.MaVoucherNavigation.MaVoucher)
+                </td>
+            </tr>
+
+                @* Thêm nút hủy đơn trong từng hàng *@
+                @if (item.TrangThaiDonHang == "Chờ xác nhận" || item.TrangThaiDonHang == "Đang xử lý")
+                {
+                <tr>
+                    <td colspan="10">
+                        <form asp-action="CancelOrder" asp-controller="HoaDons" method="post">
+                            <input type="hidden" name="id" value="@item.MaHoaDon" />
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này không?');">
+                                Hủy Đơn
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                }
+            }
     </tbody>
 </table>

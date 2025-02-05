@@ -21,9 +21,67 @@ namespace Fast_Food.Controllers
         // GET: HoaDons
         public async Task<IActionResult> Index()
         {
-            var doAnStoreContext = _context.HoaDons.Include(h => h.MaKhachHangNavigation).Include(h => h.MaNhanVienNavigation).Include(h => h.MaVoucherNavigation);
-            return View(await doAnStoreContext.ToListAsync());
+            var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
+
+            if (string.IsNullOrEmpty(maKhachHang))
+            {
+                return RedirectToAction("Login", "DangNhap"); // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
+            }
+
+            int maKH = int.Parse(maKhachHang); // Chuyển đổi mã khách hàng từ string sang int
+
+            var hoaDons = await _context.HoaDons
+                .Where(h => h.MaKhachHang == maKH) // Lọc theo mã khách hàng
+                .Include(h => h.MaKhachHangNavigation)
+                .Include(h => h.MaNhanVienNavigation)
+                .Include(h => h.MaVoucherNavigation)
+                .ToListAsync();
+
+            return View(hoaDons);
         }
+        public IActionResult CancelOrder(int id)
+        {
+            var hoaDon = _context.HoaDons
+                .Include(h => h.ChiTietHoaDons)
+                .FirstOrDefault(h => h.MaHoaDon == id);
+
+            if (hoaDon == null || hoaDon.TrangThaiDonHang == "Đã hủy")
+            {
+                return NotFound();
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // Cập nhật trạng thái hóa đơn
+                    hoaDon.TrangThaiDonHang = "Đã hủy";
+
+                    // Hoàn lại số lượng món ăn
+                    foreach (var chiTiet in hoaDon.ChiTietHoaDons)
+                    {
+                        var monAn = _context.MonAns.Find(chiTiet.MaMon);
+                        if (monAn != null)
+                        {
+                            monAn.SoLuong += chiTiet.SoLuong.Value;
+                            monAn.TrangThai = true; // Món ăn có hàng trở lại
+                        }
+                    }
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+
+            return RedirectToAction("Index");
+        }
+
+
 
         // GET: HoaDons/Details/5
         public async Task<IActionResult> Details(int? id)

@@ -177,12 +177,70 @@ footer {
     z-index: 1000; /* Đảm bảo nó nằm trên các phần tử khác */
 }
 
+/* Kiểu cho phần tử account-icon */
 .account-icon {
-    font-size: 24px; /* Kích thước của icon */
-    color: #333; /* Màu sắc của icon */
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Khoảng cách giữa icon và tên */
     text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    cursor: pointer; /* Thêm con trỏ pointer khi hover */
+    transition: color 0.3s ease; /* Hiệu ứng màu mượt mà khi hover */
 }
 
     .account-icon:hover {
         color: #007bff; /* Màu khi hover */
     }
+
+    .account-icon i {
+        font-size: 24px; /* Điều chỉnh kích thước icon */
+    }
+
+    .account-icon span {
+        font-size: 16px;
+    }
+
+/* Dropdown menu */
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%; /* Đặt menu ngay dưới phần tử icon */
+    right: 0; /* Căn phải để menu không vượt quá viền màn hình */
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+    z-index: 10000; /* Thêm z-index cao để dropdown không bị che */
+    opacity: 0; /* Ẩn dropdown mặc định */
+    visibility: hidden; /* Ẩn dropdown */
+    transition: opacity 0.3s ease, visibility 0s 0.3s; /* Thêm hiệu ứng mượt mà */
+}
+
+    /* Hiển thị dropdown khi hover vào account-dropdown */
+    .account-dropdown:hover .dropdown-menu,
+    .dropdown-menu:hover {
+        display: block;
+        opacity: 1; /* Đưa dropdown về trạng thái rõ ràng */
+        visibility: visible; /* Hiển thị dropdown khi hover */
+        transition: opacity 0.3s ease, visibility 0s 0s; /* Thêm hiệu ứng */
+    }
+
+    /* Kiểu cho các item trong dropdown */
+    .dropdown-menu a {
+        display: block;
+        padding: 10px;
+        color: #333;
+        text-decoration: none;
+    }
+
+        .dropdown-menu a:hover {
+            background-color: #f1f1f1;
+        }
