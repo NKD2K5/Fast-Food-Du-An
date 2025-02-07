@@ -9,56 +9,56 @@
     using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Security.Claims;
 
-    namespace Fast_Food.Controllers
+namespace Fast_Food.Controllers
+{
+    public class MonAnsController : Controller
     {
-        public class MonAnsController : Controller
+        private readonly DoAnStoreContext _context;
+
+        public MonAnsController(DoAnStoreContext context)
         {
-            private readonly DoAnStoreContext _context;
+            _context = context;
+        }
 
-            public MonAnsController(DoAnStoreContext context)
+        // GET: MonAns
+        public async Task<IActionResult> Index(string LoaiSanPham, string TimKiem, int pg = 1)
+        {
+            const int pageSize = 5; // Số sản phẩm hiển thị trên mỗi trang
+
+            // Truy vấn dữ liệu từ database
+            IQueryable<MonAn> monAnQuery = _context.MonAns;
+
+            // Lọc theo Loại Sản Phẩm
+            if (!string.IsNullOrEmpty(LoaiSanPham))
             {
-                _context = context;
+                monAnQuery = monAnQuery.Where(m => m.LoaiSanPham == LoaiSanPham);
             }
 
-            // GET: MonAns
-            public async Task<IActionResult> Index(string LoaiSanPham, string TimKiem, int pg = 1)
+            // Lọc theo từ khóa tìm kiếm
+            if (!string.IsNullOrEmpty(TimKiem))
             {
-                const int pageSize = 5; // Số sản phẩm hiển thị trên mỗi trang
-
-                // Truy vấn dữ liệu từ database
-                IQueryable<MonAn> monAnQuery = _context.MonAns;
-
-                // Lọc theo Loại Sản Phẩm
-                if (!string.IsNullOrEmpty(LoaiSanPham))
-                {
-                    monAnQuery = monAnQuery.Where(m => m.LoaiSanPham == LoaiSanPham);
-                }
-
-                // Lọc theo từ khóa tìm kiếm
-                if (!string.IsNullOrEmpty(TimKiem))
-                {
-                    monAnQuery = monAnQuery.Where(m => m.TenMon.Contains(TimKiem));
-                }
-
-                // Tổng số bản ghi sau khi lọc
-                int recsCount = await monAnQuery.CountAsync();
-
-                // Tính toán phân trang
-                var pager = new demdanhsach(recsCount, pg, pageSize);
-                ViewBag.Pager = pager;
-                ViewBag.LoaiSanPham = LoaiSanPham;
-                ViewBag.TimKiem = TimKiem;
-
-                // Lấy dữ liệu cho trang hiện tại
-                var products = await monAnQuery
-                    .Skip((pg - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-
-                return View(products);
+                monAnQuery = monAnQuery.Where(m => m.TenMon.Contains(TimKiem));
             }
+
+            // Tổng số bản ghi sau khi lọc
+            int recsCount = await monAnQuery.CountAsync();
+
+            // Tính toán phân trang
+            var pager = new demdanhsach(recsCount, pg, pageSize);
+            ViewBag.Pager = pager;
+            ViewBag.LoaiSanPham = LoaiSanPham;
+            ViewBag.TimKiem = TimKiem;
+
+            // Lấy dữ liệu cho trang hiện tại
+            var products = await monAnQuery
+                .Skip((pg - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return View(products);
+        }
         [HttpPost]
-        public async Task<IActionResult> AddToCart(int id)
+        public async Task<IActionResult> AddToCart(int id, string soluong)
         {
             // Lấy MaKhachHang từ hệ thống phân quyền (Identity)
             var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
@@ -70,11 +70,23 @@ using System.Security.Claims;
 
             int maKH = int.Parse(maKhachHang); // Chuyển đổi về kiểu số nguyên
 
+            // Chuyển đổi soluong từ string -> int
+            if (!int.TryParse(soluong, out int soLuong) || soLuong <= 0)
+            {
+                return BadRequest("Số lượng phải là số nguyên dương.");
+            }
+
             // Kiểm tra xem món ăn có tồn tại không
             var monAn = await _context.MonAns.FindAsync(id);
             if (monAn == null)
             {
                 return NotFound();
+            }
+
+            // Kiểm tra nếu số lượng đặt lớn hơn số lượng tồn kho
+            if (monAn.SoLuong < soLuong)
+            {
+                return BadRequest("Không đủ hàng trong kho.");
             }
 
             // Kiểm tra xem món ăn đã có trong giỏ hàng của khách chưa
@@ -83,8 +95,8 @@ using System.Security.Claims;
 
             if (giohang != null)
             {
-                // Nếu đã có thì tăng số lượng lên 1
-                giohang.SoLuong += 1;
+                // Nếu đã có thì tăng số lượng lên số lượng được nhập
+                giohang.SoLuong += soLuong;
             }
             else
             {
@@ -93,19 +105,19 @@ using System.Security.Claims;
                 {
                     MaKhachHang = maKH,
                     MaMon = monAn.MaMon,
-                    SoLuong = 1,
+                    SoLuong = soLuong, // Dùng số lượng đã chuyển đổi
                     Gia = monAn.Gia,
                     GhiChu = monAn.TenMon
                 };
                 _context.GioHangs.Add(giohang);
             }
-
             await _context.SaveChangesAsync();
+
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public IActionResult BuyNow(int id)
+        public async Task<IActionResult> BuyNow(int id)
         {
             var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
 
@@ -114,15 +126,15 @@ using System.Security.Claims;
                 return RedirectToAction("Login", "DangNhap"); // Chuyển hướng nếu chưa đăng nhập
             }
 
-            var khachHang = _context.KhachHangs
-                .FirstOrDefault(kh => kh.MaKhachHang == int.Parse(maKhachHang));
+            var khachHang = await _context.KhachHangs
+                .FirstOrDefaultAsync(kh => kh.MaKhachHang == int.Parse(maKhachHang));
 
             if (khachHang == null)
             {
                 return BadRequest("Không tìm thấy thông tin khách hàng.");
             }
 
-            var monAn = _context.MonAns.Find(id);
+            var monAn = await _context.MonAns.FindAsync(id);
             if (monAn == null || monAn.SoLuong < 1)
             {
                 return BadRequest("Sản phẩm không còn hàng.");
@@ -142,7 +154,7 @@ using System.Security.Claims;
             };
 
             _context.HoaDons.Add(hoaDon);
-            _context.SaveChanges(); // Lưu để có MaHoaDon
+            await _context.SaveChangesAsync(); // Lưu để có MaHoaDon
 
             // Thêm sản phẩm vào chi tiết hóa đơn
             var chiTietHoaDon = new ChiTietHoaDon
@@ -155,20 +167,18 @@ using System.Security.Claims;
 
             _context.ChiTietHoaDons.Add(chiTietHoaDon);
 
-            // Cập nhật số lượng sản phẩm
+            //  Cập nhật số lượng sản phẩm
             monAn.SoLuong -= 1;
             if (monAn.SoLuong == 0)
             {
                 monAn.TrangThai = false; // Cập nhật trạng thái hết hàng
             }
 
-            _context.SaveChanges();
+            _context.MonAns.Update(monAn);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction("Details", "HoaDons", new { id = hoaDon.MaHoaDon });
         }
-
-
-
         // GET: MonAns/Details/5
         public async Task<IActionResult> Details(int? id)
             {
@@ -212,28 +222,17 @@ using System.Security.Claims;
                 {
                     ModelState.AddModelError("LoaiSanPham", "Vui lòng chọn loại món ăn hợp lệ.");
                     ViewBag.LoaiSanPhamList = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "0", Text = "---Lựa Chọn Món Ăn---" },
-                new SelectListItem { Value = "1", Text = "Gà" },
-                new SelectListItem { Value = "2", Text = "Kem" },
-                new SelectListItem { Value = "3", Text = "Burger" },
-                new SelectListItem { Value = "4", Text = "Pizza" },
-                new SelectListItem { Value = "5", Text = "Khoai" },
-                new SelectListItem { Value = "6", Text = "Đồ Uống" },
-                new SelectListItem { Value = "7", Text = "Combo" }
-            };
+                    {
+                        new SelectListItem { Value = "0", Text = "---Lựa Chọn Món Ăn---" },
+                        new SelectListItem { Value = "1", Text = "Gà" },
+                        new SelectListItem { Value = "2", Text = "Kem" },
+                        new SelectListItem { Value = "3", Text = "Burger" },
+                        new SelectListItem { Value = "4", Text = "Pizza" },
+                        new SelectListItem { Value = "5", Text = "Khoai" },
+                        new SelectListItem { Value = "6", Text = "Đồ Uống" },
+                        new SelectListItem { Value = "7", Text = "Combo" }
+                    };
                     return View(monAn);
-                }
-
-                // Nếu Loại Sản Phẩm là Combo, lấy danh sách các món ăn không phải là Combo để thêm vào ChiTiếtFood
-                if (monAn.LoaiSanPham == "7") // "7" là Combo
-                {
-                    var monAnList = await _context.MonAns.Where(m => m.LoaiSanPham != "Combo").ToListAsync();
-                    ViewBag.MonAnList = monAnList;
-                }
-                else
-                {
-                    ViewBag.MonAnList = new List<MonAn>(); // Nếu không phải Combo, không cần danh sách ChiTietFood
                 }
 
                 // Kiểm tra ModelState

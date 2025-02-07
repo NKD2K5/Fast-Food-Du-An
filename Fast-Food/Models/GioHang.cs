@@ -20,6 +20,7 @@ public partial class GioHang
     public int? SoLuong { get; set; }
 
     public string? GhiChu { get; set; }
+    public string? anh { get; set; }
 
     public virtual MonAn? MaComboNavigation { get; set; }
 

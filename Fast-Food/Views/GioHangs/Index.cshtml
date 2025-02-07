@@ -9,6 +9,7 @@
     <thead>
         <tr>
             <th>Tên Sản Phẩm</th>
+            <th>Hình Ảnh</th>
             <th>Giá</th>
             <th>Số Lượng</th>
             <th>Ghi Chú</th>
@@ -26,6 +27,9 @@
 						@item.MaMonNavigation.TenMon
                     </a>
                 </td>
+                <td>
+                    <img src="@item.MaMonNavigation.HinhAnh" alt="Hình ảnh" style="width: 100px; height: 100px;" />
+                </td>
                 <td>@Html.DisplayFor(modelItem => item.Gia)</td>
                 <td>@Html.DisplayFor(modelItem => item.SoLuong)</td>
                 <td>@Html.DisplayFor(modelItem => item.GhiChu)</td>
@@ -41,7 +45,10 @@
                 </td>
                 <td>@Html.DisplayFor(modelItem => item.MaKhachHangNavigation.TenKhachHang)</td>
                 <td>
-                    <a asp-action="Delete" asp-route-id="@item.MaGioHang">Xóa</a>
+                    <form action="/GioHangs/Delete" method="post">
+                        <input type="hidden" name="id" value="@item.MaGioHang" />
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </form>
                 </td>
             </tr>
         }

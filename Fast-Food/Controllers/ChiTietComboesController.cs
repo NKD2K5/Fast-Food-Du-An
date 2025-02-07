@@ -47,14 +47,14 @@ namespace Fast_Food.Controllers
         // GET: ChiTietComboes/Create
         public IActionResult Create()
         {
-            // Truyền danh sách Combo (Món ăn loại Combo)
-            ViewData["MaMon"] = new SelectList(_context.MonAns
-                .Where(m => m.LoaiSanPham == "Combo")
+            // Truyền danh sách Combo (các món ăn loại Combo)
+            ViewData["MaCombo"] = new SelectList(_context.MonAns
+                .Where(m => m.LoaiSanPham == "7")
                 .Select(m => new { m.MaMon, m.TenMon }), "MaMon", "TenMon");
 
-            // Truyền danh sách Món ăn (Món ăn thường)
+            // Truyền danh sách Món ăn (các món ăn không phải Combo)
             ViewData["MaMonItems"] = new SelectList(_context.MonAns
-                .Where(m => m.LoaiSanPham != "Combo")
+                .Where(m => m.LoaiSanPham != "7")
                 .Select(m => new { m.MaMon, m.TenMon }), "MaMon", "TenMon");
 
             return View();
@@ -67,31 +67,34 @@ namespace Fast_Food.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Giả sử MaCombo là MaMon nếu liên kết trực tiếp
-                chiTietCombo.MaCombo = chiTietCombo.MaMon;
+                // Kiểm tra nếu cả MaCombo và MaMon tồn tại trong bảng MonAn
+                var isComboExists = _context.MonAns.Any(m => m.MaMon == chiTietCombo.MaCombo && m.LoaiSanPham == "7");
+                var isMonExists = _context.MonAns.Any(m => m.MaMon == chiTietCombo.MaMon && m.LoaiSanPham != "7");
 
-                // Thêm vào cơ sở dữ liệu
-                _context.Add(chiTietCombo);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index)); // Điều hướng về trang Index sau khi thêm
+                if (isComboExists && isMonExists)
+                {
+                    // Thêm vào cơ sở dữ liệu
+                        _context.Add(chiTietCombo);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Combo hoặc Món ăn không tồn tại hoặc không hợp lệ.");
+                }
             }
 
             // Nếu Model không hợp lệ, truyền lại dữ liệu vào dropdown
-            ViewData["MaMon"] = new SelectList(_context.MonAns
-                .Where(m => m.LoaiSanPham == "Combo")
-                .Select(m => new { m.MaMon, m.TenMon }),
-                "MaMon", "TenMon", chiTietCombo.MaMon); // Gán giá trị đã chọn vào dropdown
+            ViewData["MaCombo"] = new SelectList(_context.MonAns
+                .Where(m => m.LoaiSanPham == "7")
+                .Select(m => new { m.MaMon, m.TenMon }), "MaMon", "TenMon", chiTietCombo.MaCombo);
 
             ViewData["MaMonItems"] = new SelectList(_context.MonAns
-                .Where(m => m.LoaiSanPham == "MonAn")
-                .Select(m => new { m.MaMon, m.TenMon }),
-                "MaMon", "TenMon");
+                .Where(m => m.LoaiSanPham != "7")
+                .Select(m => new { m.MaMon, m.TenMon }), "MaMon", "TenMon", chiTietCombo.MaMon);
 
-            return View(chiTietCombo); // Trả lại View với Model đã được gán giá trị
+            return View(chiTietCombo);
         }
-
-
-
 
         // GET: ChiTietComboes/Edit/5
         public async Task<IActionResult> Edit(int? id)

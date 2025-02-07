@@ -146,40 +146,16 @@ namespace Fast_Food.Controllers
             return View(gioHang);
         }
 
-        // GET: GioHangs/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var gioHang = await _context.GioHangs
-                .Include(g => g.MaComboNavigation)
-                .Include(g => g.MaKhachHangNavigation)
-                .Include(g => g.MaMonNavigation)
-                .FirstOrDefaultAsync(m => m.MaGioHang == id);
-            if (gioHang == null)
-            {
-                return NotFound();
-            }
-
-            return View(gioHang);
-        }
-
-        // POST: GioHangs/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
         {
             var gioHang = await _context.GioHangs.FindAsync(id);
             if (gioHang != null)
             {
                 _context.GioHangs.Remove(gioHang);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index"); // Quay lại trang giỏ hàng
         }
 
         private bool GioHangExists(int id)

@@ -26,7 +26,7 @@
                 </td>
                 <td>@item.Gia</td>
                 <td>@item.SoLuong</td>
-                <td>@(item.TrangThai.HasValue ? (item.TrangThai.Value ? "Còn hàng" : "Hết hàng") : "Không xác định")</td>
+                <td>@(item.SoLuong > 0 ? "Còn hàng" : "Hết hàng")</td>
 @*                 <td>@item.NgayTao</td>
                 <td>@item.NgayCapNhat</td> *@
                 <td>@item.ChiTietFood</td>
@@ -41,16 +41,31 @@
                     }
                 </td>
                 <td>
+                @if (item.SoLuong > 0)
+                {
                     <form asp-controller="MonAns" asp-action="AddToCart" method="post">
                         <input type="hidden" name="id" value="@item.MaMon" />
+                        <input type="number" name="soLuong" value="1" min="1" max="@item.SoLuong" style="width: 50px;" />
                         <button type="submit" class="btn btn-primary">Thêm vào giỏ</button>
                     </form>
+                }
+                else
+                {
+					<button type="button" class="btn btn-danger" disabled>Hết hàng</button>
+                }
                 </td>
                 <td>
-                    <form asp-controller="MonAns" asp-action="BuyNow" method="post">
-                        <input type="hidden" name="id" value="@item.MaMon" />
-                        <button type="submit" class="btn btn-success">Mua ngay</button>
-                    </form>
+                    @if(item.SoLuong > 0){
+						<form asp-controller="MonAns" asp-action="BuyNow" method="post">
+							<input type="hidden" name="id" value="@item.MaMon" />
+                            <input type="number" name="soLuong" value="1" min="1" max="@item.SoLuong" style="width: 50px;" />
+							<button type="submit" class="btn btn-success">Mua ngay</button>
+						</form>
+					}
+					else
+					{
+						<button type="button" class="btn btn-danger" disabled>Hết hàng</button>
+					}
                 </td>
 @*                 <td>
 					<a asp-action="Edit" asp-route-id="@item.MaMon">Edit</a> |
