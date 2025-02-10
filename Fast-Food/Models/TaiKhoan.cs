@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fast_Food.Models;
 
-public partial class TaiKhoan
+public partial class TaiKhoan 
 {
     public int MaTaiKhoan { get; set; }
 

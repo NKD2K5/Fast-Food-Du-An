@@ -13,6 +13,15 @@
 </head>
 <body>
     <header>
+        <div class="search-bar">
+            <form asp-action="Search" asp-controller="Home" method="get" class="d-flex">
+                <input class="form-control me-2 search-input" type="search" name="query" placeholder="Tìm kiếm..." aria-label="Search"><button class="btn btn-outline-success d-flex align-items-center justify-content-center"style="width: 130px; gap: 5px;" type="submit">
+                    <ion-icon name="search"></ion-icon> Tìm Kiếm
+                </button>
+
+            </form>
+        </div>
+
         @{
             var maKhachHang = Context.Session.GetString("MaKhachHang");
             var tenKhachHang = Context.Session.GetString("TenKhachHang");
@@ -30,7 +39,7 @@
                     <a href="@Url.Action("Index", "HoaDons", new { id = maKhachHang })">Đơn mua</a>
                     <a href="@Url.Action("Logout", "DangNhap")">Đăng xuất</a>
                 </div>
-            </div>
+            </div> 
         </div>
         <!-- Icon Giỏ Hàng -->
         <a href="@Url.Action("Index", "GioHangs")" class="cart-icon">
@@ -51,37 +60,37 @@
                     </a>
                 </nav>
                 <li class="nav-item p-2">
-                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="1">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Gà">
                         <i class="fas fa-drumstick-bite"></i> Gà
                     </a>
                 </li>
                 <li class="nav-item p-2">
-                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="2">
-                        <ion-icon name="ice-cream-outline"></ion-icon> Kem
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Kem">
+                        <ion-icon name="ice-cream-outline"></ion-icon> Kem  
                     </a>
                 </li>
                 <li class="nav-item p-2">
-                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="3">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Burger">
                         <ion-icon name="fast-food-outline"></ion-icon> Burger
                     </a>
                 </li>
                 <li class="nav-item p-2">
-                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="4">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Pizza">
                         <ion-icon name="pizza-outline"></ion-icon> Pizza
                     </a>
                 </li>
                 <li class="nav-item p-2">
-                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="5 Tây Chiên">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Khoai Tây">
                         <ion-icon name="fast-food-outline"></ion-icon> Khoai Chiên
                     </a>
                 </li>
                 <li class="nav-item p-2">
-                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="6">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Đồ Uống">
                         <ion-icon name="beer-outline"></ion-icon> Nước Uống
                     </a>
                 </li>
                 <li class="nav-item p-2">
-                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="7">
+                    <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Combo">
                         <ion-icon name="restaurant-outline"></ion-icon> Combo
                     </a>
                 </li>

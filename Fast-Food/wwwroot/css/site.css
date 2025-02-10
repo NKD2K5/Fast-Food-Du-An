@@ -244,3 +244,24 @@ footer {
         .dropdown-menu a:hover {
             background-color: #f1f1f1;
         }
+/* Căn chỉnh menu icon */
+.search-bar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+.search-input {
+    width: 1000px; /* Làm cho ô input chiếm toàn bộ form */
+}
+.product-card {
+    z-index: 1;
+}
+
+.cart-icon {
+    z-index: 10; /* Đặt số cao hơn để nó hiển thị trên */
+}
+.account-icon-container {
+    z-index: 1100; /* Đặt số cao hơn để nó hiển thị trên */
+}

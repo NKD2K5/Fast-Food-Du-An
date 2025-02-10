@@ -38,7 +38,7 @@ namespace Fast_Food
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=MonAns}/{action=Index}/{id?}");
+                pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.Run();
         }
