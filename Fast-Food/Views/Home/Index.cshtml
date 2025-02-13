@@ -40,7 +40,7 @@
 <div class="sticky-header" id="stickyHeader">Danh Sách Món Ăn</div>
 
 <div class="container-fluid">
-    <div class="row">
+    <div class="container">
         <main role="main" class="col-md-12 px-4">
             @foreach (var group in Model.GroupBy(m => m.LoaiSanPham))
             {
@@ -49,17 +49,7 @@
                 <div class="row">
                     @foreach (var item in group)
                     {
-                        <div class="col-md-4">
-                            <div class="card mb-4 shadow-sm">
-                                <img src="@Url.Content(!string.IsNullOrEmpty(item.HinhAnh) ? "~/" + item.HinhAnh : "~/img/monan/default.png")"
-                                     class="card-img-top" alt="@item.TenMon"
-                                     onerror="this.onerror=null; this.src='@Url.Content("~/img/monan/default.png")';">
-                                <div class="card-body">
-                                    <h5 class="card-title">@item.TenMon</h5>
-                                    <p class="card-text">Giá: @item.Gia VNĐ</p>
-                                </div>
-                            </div>
-                        </div>
+                        @Html.Partial("_ProductCard", item)
                     }
                 </div>
             }
@@ -119,14 +109,14 @@
         margin-top: 100px;
     }
 
-    .card {
+/*     .card {
         border-radius: 10px;
         transition: transform 0.3s ease-in-out;
     }
 
         .card:hover {
             transform: translateY(-5px);
-        }
+        } */
 
     .sale-banner {
         width: 100vw;
@@ -144,12 +134,12 @@
         height: auto;
     }
 
-    .carousel-inner img {
+    /* .carousel-inner img {
         width: 100%;
         height: auto;
         object-fit: cover;
         transition: transform 1s ease-in-out;
-    }
+    } */
 
     .banner-small img {
         width: 100%;

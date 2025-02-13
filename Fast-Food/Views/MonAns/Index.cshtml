@@ -1,81 +1,15 @@
 ﻿@model IEnumerable<Fast_Food.Models.MonAn>
 
-<table class="table">
-    <thead>
-        <tr>
-            @* <th>Loại Sản Phẩm</th> *@
-            <th>Tên Món</th>
-            <th>Giá</th>
-            <th>Số Lượng</th>
-            <th>Trạng Thái</th>
-@*             <th>Ngày Tạo</th>
-            <th>Ngày Cập Nhật</th> *@
-            <th>Chi Tiết</th>
-            <th>Hình Ảnh</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="container">
+    <div class="row">
         @foreach (var item in Model)
         {
-            <tr>
-                @* <td>@item.LoaiSanPham</td> *@
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.MaMon" class="text-decoration-none">
-                        @item.TenMon
-                    </a>
-                </td>
-                <td>@item.Gia</td>
-                <td>@item.SoLuong</td>
-                <td>@(item.SoLuong > 0 ? "Còn hàng" : "Hết hàng")</td>
-@*                 <td>@item.NgayTao</td>
-                <td>@item.NgayCapNhat</td> *@
-                <td>@item.ChiTietFood</td>
-                <td>
-                    @if (!string.IsNullOrEmpty(item.HinhAnh))
-                    {
-                        <img src="@item.HinhAnh" alt="Hình Ảnh" width="100" />
-                    }
-                    else
-                    {
-                        <span>Không có ảnh</span>
-                    }
-                </td>
-                <td>
-                @if (item.SoLuong > 0)
-                {
-                    <form asp-controller="MonAns" asp-action="AddToCart" method="post">
-                        <input type="hidden" name="id" value="@item.MaMon" />
-                        <input type="number" name="soLuong" value="1" min="1" max="@item.SoLuong" style="width: 50px;" />
-                        <button type="submit" class="btn btn-primary">Thêm vào giỏ</button>
-                    </form>
-                }
-                else
-                {
-					<button type="button" class="btn btn-danger" disabled>Hết hàng</button>
-                }
-                </td>
-                <td>
-                    @if(item.SoLuong > 0){
-						<form asp-controller="MonAns" asp-action="BuyNow" method="post">
-							<input type="hidden" name="id" value="@item.MaMon" />
-                            <input type="number" name="soLuong" value="1" min="1" max="@item.SoLuong" style="width: 50px;" />
-							<button type="submit" class="btn btn-success">Mua ngay</button>
-						</form>
-					}
-					else
-					{
-						<button type="button" class="btn btn-danger" disabled>Hết hàng</button>
-					}
-                </td>
-@*                 <td>
-					<a asp-action="Edit" asp-route-id="@item.MaMon">Edit</a> |
-					<a asp-action="Details" asp-route-id="@item.MaMon">Details</a> |
-					<a asp-action="Delete" asp-route-id="@item.MaMon">Delete</a>
-                </td> *@
-            </tr>
+            @Html.Partial("_ProductCard", item)
         }
-    </tbody>
-</table>
+    </div>
+</div>
+
+<!-- Phân trang -->
 <nav aria-label="Page navigation example" class="d-flex justify-content-center mt-4">
     <ul class="pagination">
         <!-- Nút Previous -->
@@ -84,7 +18,7 @@
                asp-action="Index"
                asp-route-pg="@(ViewBag.Pager.CurrentPage - 1)"
                asp-route-loaisanpham="@ViewBag.LoaiSanPham"
-               asp-route-timkiem="@ViewBag.TimKiem"><ion-icon name="chevron-back-outline"></ion-icon></a>
+               asp-route-timkiem="@ViewBag.TimKiem"><i class="fas fa-chevron-left"></i></a>
         </li>
 
         <!-- Các trang -->
@@ -105,7 +39,7 @@
                asp-action="Index"
                asp-route-pg="@(ViewBag.Pager.CurrentPage + 1)"
                asp-route-loaisanpham="@ViewBag.LoaiSanPham"
-               asp-route-timkiem="@ViewBag.TimKiem"><ion-icon name="chevron-forward-outline"></ion-icon></a>
+               asp-route-timkiem="@ViewBag.TimKiem"><i class="fas fa-chevron-right"></i></a>
         </li>
     </ul>
 </nav>

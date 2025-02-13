@@ -39,6 +39,79 @@ namespace Fast_Food.Controllers
             return View(gioHangData);
         }
 
+        public async Task<IActionResult> MuaSanPham()
+        {
+            // Lấy mã khách hàng từ session
+            var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
+            if (string.IsNullOrEmpty(maKhachHang))
+            {
+                return RedirectToAction("Login", "DangNhap"); // Nếu chưa đăng nhập, chuyển hướng tới trang login
+            }
+
+            int maKH = int.Parse(maKhachHang);
+
+            // Lấy giỏ hàng của khách hàng (chỉ lấy sản phẩm có trạng thái "mở")
+            var gioHang = await _context.GioHangs
+                .Include(g => g.MaKhachHangNavigation)
+                .Include(g => g.MaMonNavigation)
+                .Where(g => g.MaKhachHang == maKH)
+                .ToListAsync();
+
+            if (!gioHang.Any()) // Nếu giỏ hàng trống, thông báo lỗi
+            {
+                TempData["ErrorMessage"] = "Giỏ hàng của bạn không có sản phẩm!";
+                return RedirectToAction("Index", "GioHangs");
+            }
+
+            // Tính tổng tiền
+            var tongTien = gioHang.Sum(g => g.SoLuong * g.Gia);
+
+            // Lấy thông tin khách hàng từ giỏ hàng (đã Include ở trên)
+            var khachHang = gioHang.First().MaKhachHangNavigation;
+
+            if (khachHang == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy thông tin khách hàng!";
+                return RedirectToAction("Index", "GioHangs");
+            }
+
+            // Tạo hóa đơn mới
+            var hoaDon = new HoaDon
+            {
+                MaKhachHang = maKH,
+                ThoiGianDat = DateTime.Now,
+                TrangThaiDonHang = "Đang xử lý",
+                TongTien = tongTien,
+                SdtlienHe = khachHang.SoDienThoai,
+                DiaChiGiaoHang = khachHang.DiaChi,
+                TrangThaiThanhToan = "Chưa thanh toán"
+            };
+
+            _context.HoaDons.Add(hoaDon);
+            await _context.SaveChangesAsync();
+
+            // Lấy ID hóa đơn vừa tạo
+            int maHoaDon = hoaDon.MaHoaDon;
+
+            // Chuyển dữ liệu từ giỏ hàng thành chi tiết hóa đơn
+            var chiTietHoaDons = gioHang.Select(item => new ChiTietHoaDon
+            {
+                MaHoaDon = maHoaDon,
+                MaMon = item.MaMon,
+                TenMonAn = item.MaMonNavigation?.TenMon, // Lấy tên món ăn đã Include sẵn
+                SoLuong = item.SoLuong,
+                Gia = item.Gia
+            }).ToList();
+
+            _context.ChiTietHoaDons.AddRange(chiTietHoaDons);
+
+            // Xóa sản phẩm khỏi giỏ hàng sau khi mua
+            _context.GioHangs.RemoveRange(gioHang);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Mua hàng thành công!";
+            return RedirectToAction("Index", "HoaDons");
+        }
 
         // GET: GioHangs/Details/5
         public async Task<IActionResult> Details(int? id)

@@ -21,7 +21,6 @@ public partial class GioHang
 
     public string? GhiChu { get; set; }
     public string? anh { get; set; }
-
     public virtual MonAn? MaComboNavigation { get; set; }
 
     public virtual KhachHang MaKhachHangNavigation { get; set; } = null!;

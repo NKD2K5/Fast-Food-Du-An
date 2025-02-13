@@ -23,7 +23,7 @@ namespace Fast_Food.Controllers
         // GET: MonAns
         public async Task<IActionResult> Index(string LoaiSanPham, string TimKiem, int pg = 1)
         {
-            const int pageSize = 5; // Số sản phẩm hiển thị trên mỗi trang
+            const int pageSize = 12; // Số sản phẩm trên mỗi trang
 
             // Truy vấn dữ liệu từ database
             IQueryable<MonAn> monAnQuery = _context.MonAns;
@@ -34,10 +34,10 @@ namespace Fast_Food.Controllers
                 monAnQuery = monAnQuery.Where(m => m.LoaiSanPham == LoaiSanPham);
             }
 
-            // Lọc theo từ khóa tìm kiếm
+            // Lọc theo từ khóa tìm kiếm (tìm trong tên món ăn)
             if (!string.IsNullOrEmpty(TimKiem))
             {
-                monAnQuery = monAnQuery.Where(m => m.TenMon.Contains(TimKiem));
+                monAnQuery = monAnQuery.Where(m => m.TenMon.ToLower().Contains(TimKiem.ToLower()));
             }
 
             // Tổng số bản ghi sau khi lọc
@@ -45,9 +45,9 @@ namespace Fast_Food.Controllers
 
             // Tính toán phân trang
             var pager = new demdanhsach(recsCount, pg, pageSize);
-            ViewBag.Pager = pager;
-            ViewBag.LoaiSanPham = LoaiSanPham;
-            ViewBag.TimKiem = TimKiem;
+                ViewBag.Pager = pager;
+                ViewBag.LoaiSanPham = LoaiSanPham;
+                ViewBag.TimKiem = TimKiem;
 
             // Lấy dữ liệu cho trang hiện tại
             var products = await monAnQuery
@@ -117,7 +117,7 @@ namespace Fast_Food.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> BuyNow(int id)
+        public async Task<IActionResult> BuyNow(int id, int soLuong)
         {
             var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
 
@@ -135,40 +135,41 @@ namespace Fast_Food.Controllers
             }
 
             var monAn = await _context.MonAns.FindAsync(id);
-            if (monAn == null || monAn.SoLuong < 1)
+            if (monAn == null || monAn.SoLuong < soLuong)
             {
-                return BadRequest("Sản phẩm không còn hàng.");
+                return BadRequest("Sản phẩm không đủ hàng.");
             }
 
-            // Tạo hóa đơn mới với thông tin khách hàng
+            // Tạo hóa đơn mới
             var hoaDon = new HoaDon
             {
                 MaKhachHang = khachHang.MaKhachHang,
                 ThoiGianDat = DateTime.Now,
                 TrangThaiDonHang = "Chờ xác nhận",
                 TrangThaiThanhToan = "Chưa thanh toán",
-                SdtlienHe = khachHang.SoDienThoai, // Lấy số điện thoại từ khách hàng
-                DiaChiGiaoHang = khachHang.DiaChi, // Lấy địa chỉ từ khách hàng
+                SdtlienHe = khachHang.SoDienThoai,
+                DiaChiGiaoHang = khachHang.DiaChi,
+                TongTien = monAn.Gia * soLuong,
                 DanhGia = 0,
                 ChiTietHoaDons = new List<ChiTietHoaDon>()
             };
 
             _context.HoaDons.Add(hoaDon);
-            await _context.SaveChangesAsync(); // Lưu để có MaHoaDon
+            await _context.SaveChangesAsync();
 
-            // Thêm sản phẩm vào chi tiết hóa đơn
+            // Thêm sản phẩm vào chi tiết hóa đơn với số lượng từ form
             var chiTietHoaDon = new ChiTietHoaDon
             {
                 MaHoaDon = hoaDon.MaHoaDon,
                 MaMon = id,
-                SoLuong = 1,
-                Gia = monAn.Gia
+                SoLuong = soLuong,  // ✅ Cập nhật số lượng từ form
+                Gia = monAn.Gia * soLuong
             };
 
             _context.ChiTietHoaDons.Add(chiTietHoaDon);
 
-            //  Cập nhật số lượng sản phẩm
-            monAn.SoLuong -= 1;
+            // Cập nhật số lượng sản phẩm
+            monAn.SoLuong -= soLuong;
             if (monAn.SoLuong == 0)
             {
                 monAn.TrangThai = false; // Cập nhật trạng thái hết hàng
@@ -179,49 +180,50 @@ namespace Fast_Food.Controllers
 
             return RedirectToAction("Details", "HoaDons", new { id = hoaDon.MaHoaDon });
         }
+
         // GET: MonAns/Details/5
         public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
             {
-                if (id == null)
-                {
-                    return NotFound();
-                }
-
-                var monAn = await _context.MonAns
-                    .FirstOrDefaultAsync(m => m.MaMon == id);
-                if (monAn == null)
-                {
-                    return NotFound();
-                }
-
-                return View(monAn);
+                return NotFound();
             }
 
-            // GET: MonAns/Create
-            public IActionResult Create()
+            var monAn = await _context.MonAns
+                .FirstOrDefaultAsync(m => m.MaMon == id);
+            if (monAn == null)
             {
-                return View();
+                return NotFound();
             }
 
-            // POST: MonAns/Create
-            // To protect from overposting attacks, enable the specific properties you want to bind to.
-            // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-            // POST: MonAns/Create
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> Create([Bind("MaMon,LoaiSanPham,TenMon,Gia,SoLuong,TrangThai,NgayTao,NgayCapNhat,ChiTietFood")] MonAn monAn, IFormFile HinhAnh)
-            {
-                // Kiểm tra nếu monAn là null
-                if (monAn == null)
-                {
-                    return BadRequest("Dữ liệu không hợp lệ.");
-                }
+            return View(monAn);
+        }
 
-                // Kiểm tra nếu LoaiSanPham là "0" (Lựa Chọn Món Ăn)
-                if (monAn.LoaiSanPham == "0")
-                {
-                    ModelState.AddModelError("LoaiSanPham", "Vui lòng chọn loại món ăn hợp lệ.");
-                    ViewBag.LoaiSanPhamList = new List<SelectListItem>
+        // GET: MonAns/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: MonAns/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: MonAns/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("MaMon,LoaiSanPham,TenMon,Gia,SoLuong,TrangThai,NgayTao,NgayCapNhat,ChiTietFood")] MonAn monAn, IFormFile HinhAnh)
+        {
+            // Kiểm tra nếu monAn là null
+            if (monAn == null)
+            {
+                return BadRequest("Dữ liệu không hợp lệ.");
+            }
+
+            // Kiểm tra nếu LoaiSanPham là "0" (Lựa Chọn Món Ăn)
+            if (monAn.LoaiSanPham == "0")
+            {
+                ModelState.AddModelError("LoaiSanPham", "Vui lòng chọn loại món ăn hợp lệ.");
+                ViewBag.LoaiSanPhamList = new List<SelectListItem>
                     {
                         new SelectListItem { Value = "0", Text = "---Lựa Chọn Món Ăn---" },
                         new SelectListItem { Value = "1", Text = "Gà" },
@@ -232,13 +234,13 @@ namespace Fast_Food.Controllers
                         new SelectListItem { Value = "6", Text = "Đồ Uống" },
                         new SelectListItem { Value = "7", Text = "Combo" }
                     };
-                    return View(monAn);
-                }
+                return View(monAn);
+            }
 
-                // Kiểm tra ModelState
-                if (!ModelState.IsValid)
-                {
-                    ViewBag.LoaiSanPhamList = new List<SelectListItem>
+            // Kiểm tra ModelState
+            if (!ModelState.IsValid)
+            {
+                ViewBag.LoaiSanPhamList = new List<SelectListItem>
                     {
                         new SelectListItem { Value = "0", Text = "---Lựa Chọn Món Ăn---" },
                         new SelectListItem { Value = "1", Text = "Gà" },
@@ -249,128 +251,125 @@ namespace Fast_Food.Controllers
                         new SelectListItem { Value = "6", Text = "Đồ Uống" },
                         new SelectListItem { Value = "7", Text = "Combo" }
                     };
-                    return View(monAn);
-                }
+                return View(monAn);
+            }
 
-                // Xử lý upload ảnh
-                if (HinhAnh != null && HinhAnh.Length > 0)
+            // Xử lý upload ảnh
+            if (HinhAnh != null && HinhAnh.Length > 0)// Kiểm tra file có rỗng không
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/monan");// Đường dẫn thư mục chứa ảnh
+                if (!Directory.Exists(folderPath))// Kiểm tra thư mục chứa ảnh có tồn tại không
                 {
-                    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/monan");
-                    if (!Directory.Exists(folderPath))
-                    {
-                        Directory.CreateDirectory(folderPath);
-                    }
-
-                    var fileExtension = Path.GetExtension(HinhAnh.FileName);
-                    var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                    var filePath = Path.Combine(folderPath, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await HinhAnh.CopyToAsync(stream);
-                    }
-
-                    monAn.HinhAnh = $"img/monan/{fileName}";
+                    Directory.CreateDirectory(folderPath);// Tạo thư mục nếu chưa tồn tại
                 }
 
-                monAn.NgayTao = DateOnly.FromDateTime(DateTime.Now);
-                monAn.NgayCapNhat = DateOnly.FromDateTime(DateTime.Now);
+                var fileExtension = Path.GetExtension(HinhAnh.FileName);// Lấy đuôi file
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";// Tạo tên file mới
+                var filePath = Path.Combine(folderPath, fileName);// Tạo đường dẫn file
 
-                _context.Add(monAn);
-                await _context.SaveChangesAsync();
+                using (var stream = new FileStream(filePath, FileMode.Create))// Tạo file mới
+                {
+                    await HinhAnh.CopyToAsync(stream);// Copy file
+                }
 
+                monAn.HinhAnh = $"img/monan/{fileName}";// Lưu đường dẫn file vào database
+            }
+
+            monAn.NgayTao = DateOnly.FromDateTime(DateTime.Now);// Lưu ngày tạo
+            monAn.NgayCapNhat = DateOnly.FromDateTime(DateTime.Now);// Lưu ngày cập nhật
+
+            _context.Add(monAn);// Thêm món ăn vào database
+            await _context.SaveChangesAsync();// Lưu thay đổi
+
+            return RedirectToAction(nameof(Index));// Chuyển hướng về trang Index
+        }
+        // GET: MonAns/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var monAn = await _context.MonAns.FindAsync(id);
+            if (monAn == null)
+            {
+                return NotFound();
+            }
+            return View(monAn);
+        }
+
+        // POST: MonAns/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("MaMon,LoaiSanPham,TenMon,Gia,SoLuong,TrangThai,NgayTao,NgayCapNhat,ChiTietFood,HinhAnh")] MonAn monAn)
+        {
+            if (id != monAn.MaMon)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(monAn);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!MonAnExists(monAn.MaMon))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
+            return View(monAn);
+        }
 
-
-
-            // GET: MonAns/Edit/5
-            public async Task<IActionResult> Edit(int? id)
+        // GET: MonAns/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
             {
-                if (id == null)
-                {
-                    return NotFound();
-                }
-
-                var monAn = await _context.MonAns.FindAsync(id);
-                if (monAn == null)
-                {
-                    return NotFound();
-                }
-                return View(monAn);
+                return NotFound();
             }
 
-            // POST: MonAns/Edit/5
-            // To protect from overposting attacks, enable the specific properties you want to bind to.
-            // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> Edit(int id, [Bind("MaMon,LoaiSanPham,TenMon,Gia,SoLuong,TrangThai,NgayTao,NgayCapNhat,ChiTietFood,HinhAnh")] MonAn monAn)
+            var monAn = await _context.MonAns
+                .FirstOrDefaultAsync(m => m.MaMon == id);
+            if (monAn == null)
             {
-                if (id != monAn.MaMon)
-                {
-                    return NotFound();
-                }
-
-                if (ModelState.IsValid)
-                {
-                    try
-                    {
-                        _context.Update(monAn);
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (!MonAnExists(monAn.MaMon))
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
-                    return RedirectToAction(nameof(Index));
-                }
-                return View(monAn);
+                return NotFound();
             }
 
-            // GET: MonAns/Delete/5
-            public async Task<IActionResult> Delete(int? id)
+            return View(monAn);
+        }
+
+        // POST: MonAns/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var monAn = await _context.MonAns.FindAsync(id);
+            if (monAn != null)
             {
-                if (id == null)
-                {
-                    return NotFound();
-                }
-
-                var monAn = await _context.MonAns
-                    .FirstOrDefaultAsync(m => m.MaMon == id);
-                if (monAn == null)
-                {
-                    return NotFound();
-                }
-
-                return View(monAn);
+                _context.MonAns.Remove(monAn);
             }
 
-            // POST: MonAns/Delete/5
-            [HttpPost, ActionName("Delete")]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> DeleteConfirmed(int id)
-            {
-                var monAn = await _context.MonAns.FindAsync(id);
-                if (monAn != null)
-                {
-                    _context.MonAns.Remove(monAn);
-                }
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
 
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-
-            private bool MonAnExists(int id)
-            {
-                return _context.MonAns.Any(e => e.MaMon == id);
-            }
+        private bool MonAnExists(int id)
+        {
+            return _context.MonAns.Any(e => e.MaMon == id);
         }
     }
+}

@@ -26,6 +26,7 @@ public partial class HoaDon
     public double DanhGia { get; set; }
 
     public int? MaVoucher { get; set; }
+    public decimal? TongTien { get; set; } 
 
     public virtual ICollection<ChiTietHoaDon> ChiTietHoaDons { get; set; } = new List<ChiTietHoaDon>();
 
