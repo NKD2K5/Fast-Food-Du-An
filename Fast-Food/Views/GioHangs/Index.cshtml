@@ -14,7 +14,6 @@
             <th>Số Lượng</th>
             <th>Ghi Chú</th>
             <th>Mã Sản Phẩm</th>
-            <th>Khách Hàng</th>
             <th>Hành Động</th>
         </tr>
     </thead>
@@ -43,7 +42,6 @@
                         @Html.DisplayFor(modelItem => item.MaMonNavigation.MaMon) <!-- Hiển thị tên món ăn -->
                     }
                 </td>
-                <td>@Html.DisplayFor(modelItem => item.MaKhachHangNavigation.TenKhachHang)</td>
                 <td>
                     <form action="/GioHangs/Delete" method="post">
                         <input type="hidden" name="id" value="@item.MaGioHang" />

@@ -1,5 +1,4 @@
-﻿
-using Fast_Food.Models;
+﻿using Fast_Food.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fast_Food.Controllers
@@ -8,7 +7,7 @@ namespace Fast_Food.Controllers
     {
         readonly DoAnStoreContext _context;
 
-        // Constructor để khởi tạo _context thông qua dependency injection
+        // Constructor để khởi tạo _context thông qua Dependency Injection
         public DangNhapController(DoAnStoreContext context)
         {
             _context = context;
@@ -24,48 +23,68 @@ namespace Fast_Food.Controllers
         public IActionResult Login(string tk, string mk)
         {
             var taikhoan = _context.TaiKhoans.FirstOrDefault(t => t.TenTk == tk);
+
             if (taikhoan == null)
             {
                 ViewBag.loi = "Sai tên đăng nhập!";
                 return View();
             }
+
             if (!VerifyPassword(mk, taikhoan.MatKhau))
             {
                 ViewBag.loi = "Sai mật khẩu!";
                 return View();
             }
 
-            // Lưu thông tin vào session
+            string defaultAvatar = "/img/avatars/default-avatar.jpg"; // Ảnh mặc định nếu không có avatar
+
+            // Kiểm tra loại tài khoản để lưu vào session
             if (taikhoan.LoaiTaiKhoan == "NhanVien")
             {
-                HttpContext.Session.SetString("MaNhanVien", taikhoan.MaNhanVien.ToString());
+                if (taikhoan.MaNhanVien == null)
+                {
+                    ViewBag.loi = "Tài khoản nhân viên không hợp lệ!";
+                    return View();
+                }
+
+                // Lưu thông tin vào session
+                HttpContext.Session.SetString("MaNhanVien", taikhoan.MaNhanVien?.ToString() ?? "");
                 HttpContext.Session.SetString("TenNhanVien", taikhoan.TenTk);
-                return RedirectToAction("Privacy", "Home");
+                HttpContext.Session.SetString("Avatar", taikhoan.MaNhanVienNavigation?.Avatar ?? defaultAvatar);
+
+                return RedirectToAction("QuanLySanPham", "MonAns");
             }
             else if (taikhoan.LoaiTaiKhoan == "KhachHang")
             {
+                if (taikhoan.MaKhachHang == null)
+                {
+                    ViewBag.loi = "Tài khoản khách hàng không hợp lệ!";
+                    return View();
+                }
+
+                // Lưu thông tin vào session
                 HttpContext.Session.SetString("MaKhachHang", taikhoan.MaKhachHang.ToString());
                 HttpContext.Session.SetString("TenKhachHang", taikhoan.TenTk);
-                return RedirectToAction("Index", "MonAns");
+                HttpContext.Session.SetString("Avatar", taikhoan.MaKhachHangNavigation?.Avatar ?? defaultAvatar);
+
+                return RedirectToAction("Index", "Home");
             }
 
+            ViewBag.loi = "Loại tài khoản không hợp lệ!";
             return View();
         }
-
         private bool VerifyPassword(string passwordInput, string passwordStored)
         {
             return passwordInput == passwordStored;
         }
+
+        // Đăng xuất
         public IActionResult Logout()
         {
-            // Xóa thông tin từ Session khi người dùng đăng xuất
-            HttpContext.Session.Remove("TenKhachHang");
-            HttpContext.Session.Remove("MaKhachHang");
-            HttpContext.Session.Remove("TenNhanVien");
-            HttpContext.Session.Remove("MaNhanVien");
-            // Chuyển hướng về trang đăng nhập
+            HttpContext.Session.Clear();
             return RedirectToAction("Login", "DangNhap");
         }
+
         // Hiển thị form đăng ký
         [HttpGet]
         public IActionResult DangKy()
@@ -77,7 +96,8 @@ namespace Fast_Food.Controllers
         [HttpPost]
         public IActionResult DangKy(string Email, string Ten, string SoDienThoai, string DiaChi, string Tk, string MK1, string MK2, string GioiTinh, DateTime NgaySinh)
         {
-            if (string.IsNullOrEmpty(Email) || string.IsNullOrWhiteSpace(Ten) || string.IsNullOrWhiteSpace(Tk) || string.IsNullOrWhiteSpace(MK1) || string.IsNullOrWhiteSpace(MK2))
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Ten) || string.IsNullOrWhiteSpace(Tk) ||
+                string.IsNullOrWhiteSpace(MK1) || string.IsNullOrWhiteSpace(MK2))
             {
                 ViewBag.loii = "Vui lòng điền đầy đủ thông tin.";
                 return View();
@@ -125,18 +145,19 @@ namespace Fast_Food.Controllers
 
             return RedirectToAction("Login");
         }
+
+        // Trang liên hệ
         public IActionResult LienHe()
         {
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult LienHe(ContactViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Lưu thông tin hoặc gửi email, ví dụ:
-                // Gửi email hoặc lưu vào cơ sở dữ liệu
                 TempData["Message"] = "Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm.";
                 return RedirectToAction("LienHe");
             }

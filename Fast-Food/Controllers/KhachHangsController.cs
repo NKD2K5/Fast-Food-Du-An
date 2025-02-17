@@ -107,7 +107,7 @@ namespace Fast_Food.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaKhachHang,TenKhachHang,GioiTinh,SoDienThoai,NgaySinh,Email,DiaChi,Avatar")] KhachHang khachHang)
+        public async Task<IActionResult> Edit(int id, [Bind("MaKhachHang,TenKhachHang,GioiTinh,SoDienThoai,NgaySinh,Email,DiaChi")] KhachHang khachHang, IFormFile AvatarFile)
         {
             if (id != khachHang.MaKhachHang)
             {
@@ -118,12 +118,42 @@ namespace Fast_Food.Controllers
             {
                 try
                 {
-                    _context.Update(khachHang);  // Cập nhật thông tin khách hàng vào cơ sở dữ liệu
-                    await _context.SaveChangesAsync();  // Lưu thay đổi vào database
+                    var existingKhachHang = await _context.KhachHangs.FindAsync(id);// Lấy thông tin khách hàng từ database
+                    if (existingKhachHang == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Cập nhật thông tin khách hàng
+                    existingKhachHang.TenKhachHang = khachHang.TenKhachHang;
+                    existingKhachHang.GioiTinh = khachHang.GioiTinh;
+                    existingKhachHang.SoDienThoai = khachHang.SoDienThoai;
+                    existingKhachHang.NgaySinh = khachHang.NgaySinh;
+                    existingKhachHang.Email = khachHang.Email;
+                    existingKhachHang.DiaChi = khachHang.DiaChi;
+
+                    // Xử lý upload ảnh đại diện
+                    if (AvatarFile != null && AvatarFile.Length > 0)
+                    {
+                        var fileName = Path.GetFileName(AvatarFile.FileName);// Lấy tên file
+                        var filePath = Path.Combine("wwwroot/img/avatars", fileName);// Đường dẫn lưu file
+
+                        // Lưu ảnh vào thư mục server
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await AvatarFile.CopyToAsync(stream);
+                        }
+
+                        // Cập nhật đường dẫn ảnh trong database
+                        existingKhachHang.Avatar = "/img/avatars/" + fileName;
+                    }
+
+                    _context.Update(existingKhachHang);
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!KhachHangExists(khachHang.MaKhachHang))
+                    if (!_context.KhachHangs.Any(e => e.MaKhachHang == khachHang.MaKhachHang)) // Kiểm tra khách hàng có tồn tại không
                     {
                         return NotFound();
                     }
@@ -132,11 +162,10 @@ namespace Fast_Food.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));  // Sau khi lưu xong, chuyển hướng về trang Index
+                return RedirectToAction(nameof(Index));
             }
-            return View(khachHang);  // Nếu có lỗi, trả về lại form với thông báo lỗi
+            return View(khachHang);
         }
-
         // GET: KhachHangs/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -168,6 +197,11 @@ namespace Fast_Food.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+        public IActionResult DanhSachKhachHang()
+        {
+            var khachHangs = _context.KhachHangs.ToList();
+            return View(khachHangs);
         }
 
         private bool KhachHangExists(int id)

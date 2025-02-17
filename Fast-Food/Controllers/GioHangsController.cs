@@ -80,7 +80,7 @@ namespace Fast_Food.Controllers
             {
                 MaKhachHang = maKH,
                 ThoiGianDat = DateTime.Now,
-                TrangThaiDonHang = "Đang xử lý",
+                TrangThaiDonHang = "Chờ xác nhận",
                 TongTien = tongTien,
                 SdtlienHe = khachHang.SoDienThoai,
                 DiaChiGiaoHang = khachHang.DiaChi,

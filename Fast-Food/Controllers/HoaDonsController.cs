@@ -17,12 +17,41 @@ namespace Fast_Food.Controllers
         {
             _context = context;
         }
+        public IActionResult HienThiQR(int id)
+        {
+            var hoaDon = _context.HoaDons.Find(id);
+            if (hoaDon == null)
+            {
+                return NotFound();
+            }
 
+            return View(hoaDon); // Trả về View hiển thị ảnh QR
+        }
+
+        [HttpPost]
+        public IActionResult ThanhToan(int id)
+        {
+            var hoaDon = _context.HoaDons.Find(id);
+            if (hoaDon == null)
+            {
+                return NotFound();
+            }
+
+            // Cập nhật trạng thái đơn hàng thành "Đã thanh toán"
+            hoaDon.TrangThaiThanhToan = "Đã thanh toán";
+            _context.Update(hoaDon);
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Đơn hàng đã được thanh toán thành công!";
+
+            // Chuyển hướng đến trang danh sách hóa đơn
+            return RedirectToAction("Index");
+        }
         // GET: HoaDons
         public async Task<IActionResult> Index()
         {
             var maKhachHang = HttpContext.Session.GetString("MaKhachHang");
-
+            var maNhanVien = HttpContext.Session.GetString("MaNhanVien");
             if (string.IsNullOrEmpty(maKhachHang))
             {
                 return RedirectToAction("Login", "DangNhap"); // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
@@ -81,7 +110,53 @@ namespace Fast_Food.Controllers
             return RedirectToAction("Index");
         }
 
+        public async Task<IActionResult> HoaDon()
+        {
+            var hoaDons = await _context.HoaDons
+                .Include(h => h.MaKhachHangNavigation)
+                .Include(h => h.MaNhanVienNavigation)
+                .Include(h => h.MaVoucherNavigation)
+                .ToListAsync();
+            return View(hoaDons);
+        }
 
+        // GET: Hiển thị form chỉnh sửa trạng thái đơn hàng
+        [HttpPost]
+        public async Task<IActionResult> CapNhatTrangThai(int id)
+        {
+            var hoaDon = await _context.HoaDons.FindAsync(id);
+            if (hoaDon == null)
+            {
+                return NotFound();
+            }
+
+            string trangThaiHienTai = hoaDon.TrangThaiDonHang.Trim().ToLower();
+
+            switch (trangThaiHienTai)
+            {
+                case "đang chuẩn bị":  // Chuyển từ "Đang chuẩn bị" sang "Đang giao hàng"
+                    hoaDon.TrangThaiDonHang = "Đang giao hàng";
+                    break;
+                case "đang giao hàng":  // Chuyển từ "Đang giao hàng" sang "Chờ xác nhận thanh toán"
+                    hoaDon.TrangThaiDonHang = "Chờ xác nhận thanh toán";
+                    break;
+                case "chờ xác nhận thanh toán":  // Chuyển từ "Chờ xác nhận thanh toán" sang "Hoàn thành"
+                    hoaDon.TrangThaiDonHang = "Hoàn thành";
+                    hoaDon.ThoiGianKetThuc = DateTime.Now;
+                    break;
+                case "hoàn thành":
+                    TempData["ErrorMessage"] = "Đơn hàng đã hoàn thành, không thể cập nhật tiếp!";
+                    return RedirectToAction("HoaDon");
+                default:
+                    TempData["ErrorMessage"] = "Trạng thái đơn hàng không hợp lệ!";
+                    return RedirectToAction("HoaDon");
+            }
+
+            await _context.SaveChangesAsync();  // Cập nhật vào cơ sở dữ liệu
+
+            TempData["SuccessMessage"] = "Cập nhật trạng thái đơn hàng thành công!";
+            return RedirectToAction("HoaDon");  // Quay lại trang danh sách hóa đơn
+        }
 
         // GET: HoaDons/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -95,7 +170,10 @@ namespace Fast_Food.Controllers
                 .Include(h => h.MaKhachHangNavigation)
                 .Include(h => h.MaNhanVienNavigation)
                 .Include(h => h.MaVoucherNavigation)
+                .Include(h => h.ChiTietHoaDons) // Lấy chi tiết hóa đơn
+                    .ThenInclude(ct => ct.MaMonNavigation) // Lấy thông tin món ăn
                 .FirstOrDefaultAsync(m => m.MaHoaDon == id);
+
             if (hoaDon == null)
             {
                 return NotFound();
@@ -103,7 +181,6 @@ namespace Fast_Food.Controllers
 
             return View(hoaDon);
         }
-
         // GET: HoaDons/Create
         public IActionResult Create()
         {
@@ -224,6 +301,48 @@ namespace Fast_Food.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        public IActionResult ThongKe()
+        {
+            var thongKe = _context.HoaDons
+                .GroupBy(hd => hd.TrangThaiDonHang)
+                .Select(g => new ThongKeViewModel
+                {
+                    TrangThai = g.Key,
+                    TongTien = g.Sum(hd => hd.TongTien) ?? 0 // Tránh lỗi null
+                })
+                .ToList();
+
+            return View(thongKe); // Trả về danh sách ThongKeViewModel
+        }
+        public async Task<IActionResult> XacNhanDon()
+        {
+            var hoaDons = await _context.HoaDons
+                .Where(h => h.TrangThaiDonHang == "Chờ xác nhận") // Chỉ lấy đơn hàng chưa xác nhận
+                .Include(h => h.MaKhachHangNavigation)
+                .Include(h => h.MaNhanVienNavigation)
+                .Include(h => h.MaVoucherNavigation)
+                .ToListAsync();
+
+            if (hoaDons == null || !hoaDons.Any())
+            {
+                ViewBag.Message = "Không có hóa đơn nào cần xác nhận.";
+            }
+
+            return View(hoaDons);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> XacNhan(int id)
+        {
+            var hoaDon = await _context.HoaDons.FindAsync(id);
+            if (hoaDon != null && hoaDon.TrangThaiDonHang == "Chờ xác nhận") 
+            {
+                hoaDon.TrangThaiDonHang = "Đang chuẩn bị"; 
+                await _context.SaveChangesAsync(); 
+            }
+            return RedirectToAction("XacNhanDon");
+        }
+
 
         private bool HoaDonExists(int id)
         {

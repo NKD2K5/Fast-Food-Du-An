@@ -162,7 +162,7 @@ namespace Fast_Food.Controllers
             {
                 MaHoaDon = hoaDon.MaHoaDon,
                 MaMon = id,
-                SoLuong = soLuong,  // ✅ Cập nhật số lượng từ form
+                SoLuong = soLuong,  //  Cập nhật số lượng từ form
                 Gia = monAn.Gia * soLuong
             };
 
@@ -182,7 +182,7 @@ namespace Fast_Food.Controllers
         }
 
         // GET: MonAns/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, string? loaiSanPham)
         {
             if (id == null)
             {
@@ -195,7 +195,12 @@ namespace Fast_Food.Controllers
             {
                 return NotFound();
             }
+            if (string.IsNullOrEmpty(loaiSanPham))
+            {
+                loaiSanPham = monAn.LoaiSanPham;
+            }
 
+            ViewData["LoaiSanPham"] = loaiSanPham;
             return View(monAn);
         }
 
@@ -366,7 +371,38 @@ namespace Fast_Food.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        public async Task<IActionResult> QuanLySanPham()
+        {
+            var danhSachMonAn = await _context.MonAns.ToListAsync();
+            return View(danhSachMonAn);
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> CapNhatSoLuong(int id, int soLuong)
+        {
+            var monAn = await _context.MonAns.FindAsync(id);
+            if (monAn == null)
+            {
+                return NotFound();
+            }
+
+            if (soLuong < 0)
+            {
+                TempData["ErrorMessage"] = "Số lượng không thể âm!";
+                return RedirectToAction(nameof(QuanLySanPham));
+            }
+
+            monAn.SoLuong = soLuong;
+
+            // Cập nhật trạng thái còn hàng hoặc hết hàng
+            monAn.TrangThai = soLuong > 0;
+
+            _context.Update(monAn);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Cập nhật số lượng thành công!";
+            return RedirectToAction(nameof(QuanLySanPham));
+        }
         private bool MonAnExists(int id)
         {
             return _context.MonAns.Any(e => e.MaMon == id);

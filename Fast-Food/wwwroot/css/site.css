@@ -57,11 +57,6 @@ body {
         font-size: 1.8rem;
     }
 
-/* Khi sidebar mở, nút menu-toggle di chuyển */
-.sidebar.active + .menu-toggle {
-    left: 260px; /* Đẩy nút ra ngoài khi sidebar mở */
-}
-
 /* Sidebar Nav Link Styling */
 .sidebar .nav-link {
     color: #ffffff;
@@ -181,7 +176,7 @@ footer {
 .account-icon {
     display: flex;
     align-items: center;
-    gap: 5px; /* Khoảng cách giữa icon và tên */
+    gap: 10px; /* Khoảng cách giữa icon và tên */
     text-decoration: none;
     color: #333;
     font-weight: bold;

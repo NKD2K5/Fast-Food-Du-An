@@ -1,5 +1,6 @@
 ﻿using Fast_Food.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http; 
 
 namespace Fast_Food
 {
@@ -15,8 +16,11 @@ namespace Fast_Food
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
             });
 
+            // Đăng ký HttpContextAccessor
+            builder.Services.AddHttpContextAccessor();
+
             // Đăng ký Session
-            builder.Services.AddSession(options => options.IOTimeout = TimeSpan.FromSeconds(5));
+            builder.Services.AddSession(options => options.IOTimeout = TimeSpan.FromSeconds(30));
 
             builder.Services.AddControllersWithViews();
 
@@ -44,4 +48,3 @@ namespace Fast_Food
         }
     }
 }
-   

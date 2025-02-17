@@ -13,54 +13,94 @@
 </head>
 <body>
     <header>
-        <div class="search-bar">
-            <form asp-action="Index" asp-controller="MonAns" method="get" class="d-flex">
-                <input class="form-control me-2 search-input" type="search" name="TimKiem" placeholder="Tìm kiếm..." aria-label="Search"><button class="btn btn-outline-success d-flex align-items-center justify-content-center"style="width: 130px; gap: 5px;" type="submit">
-                    <ion-icon name="search"></ion-icon> Tìm Kiếm
-                </button>
-            </form>
-        </div>
+        @{
+            string actionName = ViewContext.RouteData.Values["action"]?.ToString();
+            string controllerName = ViewContext.RouteData.Values["controller"]?.ToString();
+            var id = Context.Request.RouteValues["id"];
+        }
+
+        @if (!(controllerName == "DangNhap" && (actionName == "Login" || actionName == "Register" || actionName == "LienHe")
+				|| (controllerName == "KhachHangs" && actionName == "Edit" && id != null)))  // Thêm điều kiện hiển thị thanh tìm kiếm
+        {
+            <div class="search-bar">
+                <form asp-action="Index" asp-controller="MonAns" method="get" class="d-flex">
+                    <input class="form-control me-2 search-input" type="search" name="TimKiem" placeholder="Tìm kiếm..." aria-label="Search"><button class="btn btn-outline-success d-flex align-items-center justify-content-center"style="width: 130px; gap: 5px;" type="submit">
+                        <ion-icon name="search"></ion-icon> Tìm Kiếm
+                    </button>
+                </form>
+            </div>
+        }
         @{
             var maKhachHang = Context.Session.GetString("MaKhachHang");
             var tenKhachHang = Context.Session.GetString("TenKhachHang");
+            var tenNhanVien = Context.Session.GetString("TenNhanVien");
+            var maNhanVien = Context.Session.GetString("MaNhanVien");
+            var avatar = Context.Session.GetString("Avatar") ?? "/img/avatars/default-avatar.jpg";
         }
-
-        @if (Context.Session.GetString("TenKhachHang") != null)
+        @if (Context.Session.GetString("MaKhachHang") != null)
         {
             <div class="account-icon-container">
-                <div class="account-dropdown">
-                    <div class="account-icon">
-                        <i class="fas fa-user-circle"></i>
-                        <span>@tenKhachHang</span>
+                <div class="account-dropdown d-flex align-items-center">
+                    <div class="account-dropdown">
+                        <img src="@avatar" alt="Avatar" class="rounded-circle" width="40" height="40"
+                             onerror="this.onerror=null; this.src='/img/avatars/default-avatar.jpg';" />
+                        <span class="ms-2">Xin chào, @tenKhachHang</span>
                     </div>
+
                     <div class="dropdown-menu">
                         <a href="@Url.Action("Edit", "KhachHangs", new { id = maKhachHang })">Thông tin cá nhân</a>
                         <a href="@Url.Action("Index", "HoaDons", new { id = maKhachHang })">Đơn mua</a>
-                        <a href="@Url.Action("Logout", "DangNhap")">Đăng xuất</a>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="@Url.Action("Logout", "DangNhap")">Đăng xuất</a></li>
                     </div>
+                </div>
+            </div>
+            <!-- Icon Giỏ Hàng -->
+            <a href="@Url.Action("Index", "GioHangs")" class="cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+                <!-- Hiển thị số lượng sản phẩm trong giỏ hàng -->
+                <span class="cart-badge">@ViewBag.SoLuongGioHang</span>
+            </a>
+        }
+        else if(Context.Session.GetString("MaNhanVien") != null)
+        {
+            <div class="account-icon-container">
+                <div class="account-dropdown d-flex align-items-center">
+                    <div class="account-dropdown">
+                        <img src="@Url.Content(Context.Session.GetString("Avatar"))"
+                             alt="Avatar" class="rounded-circle" width="40" height="40"
+                             onerror="this.onerror=null; this.src='/img/avatars/default-avatar.jpg';" />
+                        <span class="ms-2">Xin chào, @Context.Session.GetString("TenNhanVien")</span>
+                    </div>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="@Url.Action("Edit", "NhanViens", new { id = maNhanVien })">Thông tin cá nhân</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("QuanLySanPham", "MonAns")">Quản lý Sản phẩm</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("DanhSachKhachHang", "KhachHangs")">Quản lý Khách hàng</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("ThongKe", "HoaDons")">Thống kê Đơn hàng</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("XacNhanDon", "HoaDons")">Xác nhận Đơn hàng</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("HoaDon", "HoaDons")">Quản lý Hóa đơn</a></li> <!-- Thêm dòng này -->
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="@Url.Action("Logout", "DangNhap")">Đăng xuất</a></li>
+                    </ul>
                 </div>
             </div>
         }
         else
         {
             <div class="account-login d-flex gap-2 account-icon-container">
-                <a href="@Url.Action("Login", "DangNhap")">Đăng nhập</a>/
+                <a href="@Url.Action("Login", "DangNhap")">Đăng nhập</a> /
                 <a href="@Url.Action("DangKy", "DangNhap")">Đăng ký</a>
             </div>
         }
-
-        <!-- Icon Giỏ Hàng -->
-        <a href="@Url.Action("Index", "GioHangs")" class="cart-icon">
-            <i class="fas fa-shopping-cart"></i>
-            <!-- Hiển thị số lượng sản phẩm trong giỏ hàng -->
-            <span class="cart-badge">@ViewBag.SoLuongGioHang</span>
-        </a>
         <!-- Menu Icon -->
-        <button class="menu-toggle" id="menu-toggle">
-            <ion-icon id="menu-icon" name="arrow-forward"></ion-icon> <!-- Biểu tượng mặc định -->
+        <button class="menu-toggle" id="menu-toggle" style="color : white ">
+            <ion-icon id="menu-icon" name="menu-sharp"></ion-icon><!-- Biểu tượng mặc định -->
         </button>
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
+            @if (Context.Session.GetString("MaKhachHang") != null)
+            { 
+
             <ul class="nav flex-column">
                 <nav>
                     <a class="navbar-brand" asp-controller="Home" asp-action="Index">
@@ -108,6 +148,90 @@
                     </a>
                 </li>
             </ul>   
+            }
+            else if (Context.Session.GetString("MaNhanVien") != null){
+                <ul class="navbar-nav">
+                    <nav>
+                        <a class="navbar-brand">
+                            <img src="~/img/Poly food.png" alt="Poly Food" class="nav-logo" />
+                        </a>
+                    </nav>
+                    <li class="nav-item p-3">
+                        <a class="nav-link" href="@Url.Action("QuanLySanPham", "MonAns")">
+                            <i class="fas fa-cogs p-2"></i> Quản lý Sản phẩm
+                        </a>
+                    </li>
+                    <li class="nav-item p-3">
+                        <a class="nav-link" href="@Url.Action("DanhSachKhachHang", "KhachHangs")">
+                            <i class="fas fa-users p-2"></i> Quản lý Khách hàng
+                        </a>
+                    </li>
+                    <li class="nav-item p-3">
+                        <a class="nav-link" href="@Url.Action("ThongKe", "HoaDons")">
+                            <i class="fas fa-chart-line p-2"></i> Thống kê Đơn hàng
+                        </a>
+                    </li>
+                    <li class="nav-item p-3">
+                        <a class="nav-link" href="@Url.Action("XacNhanDon", "HoaDons")">
+                            <i class="fas fa-check-circle p-2"></i> Xác nhận Đơn hàng
+                        </a>
+                    </li>
+                    <li class="nav-item p-3">
+                        <a class="nav-link" href="@Url.Action("HoaDon", "HoaDons")">
+                            <i class="fas fa-file-invoice p-2"></i> Quản lý Hóa đơn
+                        </a>
+                    </li>
+                </ul>
+            }
+            else{
+                <ul class="nav flex-column">
+                    <nav>
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                            <img src="~/img/Poly food.png" alt="Poly Food" class="nav-logo" />
+                        </a>
+                    </nav>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Gà">
+                            <i class="fas fa-drumstick-bite"></i> Gà
+                        </a>
+                    </li>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Kem">
+                            <ion-icon name="ice-cream-outline"></ion-icon> Kem
+                        </a>
+                    </li>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Burger">
+                            <ion-icon name="fast-food-outline"></ion-icon> Burger
+                        </a>
+                    </li>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Pizza">
+                            <ion-icon name="pizza-outline"></ion-icon> Pizza
+                        </a>
+                    </li>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Khoai Tây">
+                            <ion-icon name="fast-food-outline"></ion-icon> Khoai Chiên
+                        </a>
+                    </li>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Đồ Uống">
+                            <ion-icon name="beer-outline"></ion-icon> Nước Uống
+                        </a>
+                    </li>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="MonAns" asp-action="Index" asp-route-LoaiSanPham="Combo">
+                            <ion-icon name="restaurant-outline"></ion-icon> Combo
+                        </a>
+                    </li>
+                    <li class="nav-item p-2">
+                        <a class="nav-link" asp-controller="DangNhap" asp-action="LienHe">
+                            <ion-icon name="call-outline"></ion-icon> Liên Hệ
+                        </a>
+                    </li>
+                </ul>
+            }
         </div>
     </header>
 
@@ -117,14 +241,6 @@
             @RenderBody()
         </main>
     </div>
-
-    <!-- Footer -->
-    <footer class="footer text-muted">
-        <div class="container text-center">
-            &copy; 2025 - Fast_Food - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>     
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -134,15 +250,16 @@
         document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.getElementById('sidebar');
             const menuToggle = document.getElementById('menu-toggle');
-            const menuIcon = document.getElementById('menu-icon');
+            const menuIcon = document.getElementById('menu-icon'); // Lấy icon
             const mainContent = document.querySelector('.main-content');
 
-            // Kiểm tra trạng thái sidebar từ localStorage (lưu trữ trạng thái mở/đóng)
+            // Kiểm tra trạng thái sidebar từ localStorage
             if (localStorage.getItem('sidebarActive') === 'true') {
                 sidebar.classList.add('active');
                 mainContent.style.marginLeft = '250px';
-                menuToggle.style.left = '260px';
-                menuIcon.setAttribute('name', 'arrow-back');
+                menuIcon.style.color = 'white'; // Mở: icon trắng
+            } else {
+                menuIcon.style.color = 'black'; // Tắt: icon đen
             }
 
             // Toggle trạng thái sidebar khi nhấn vào menu-toggle
@@ -150,25 +267,17 @@
                 sidebar.classList.toggle('active');
 
                 if (sidebar.classList.contains('active')) {
-                    mainContent.style.marginLeft = '250px'; // Di chuyển nội dung chính
-                    menuToggle.style.left = '260px'; // Di chuyển nút toggle
-                    menuIcon.setAttribute('name', 'arrow-back'); // Biểu tượng khi sidebar mở
-                    // Lưu trạng thái mở vào localStorage
+                    mainContent.style.marginLeft = '250px';
+                    menuIcon.style.color = 'white'; // Mở: icon trắng
                     localStorage.setItem('sidebarActive', 'true');
                 } else {
-                    mainContent.style.marginLeft = '0'; // Trả lại nội dung chính
-                    menuToggle.style.left = '20px'; // Trả lại vị trí nút toggle
-                    menuIcon.setAttribute('name', 'arrow-forward'); // Biểu tượng khi sidebar đóng
-                    // Lưu trạng thái đóng vào localStorage
+                    mainContent.style.marginLeft = '0';
+                    menuIcon.style.color = 'black'; // Tắt: icon đen
                     localStorage.setItem('sidebarActive', 'false');
                 }
             });
-
-            // Logout function
-            function Logout() {
-                window.location.href = '/Account/Logout';
-            }
         });
+
     </script>
 </body>
 </html>

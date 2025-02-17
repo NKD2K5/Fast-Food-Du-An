@@ -85,7 +85,7 @@ namespace Fast_Food.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaNhanVien,TenNhanVien,GioiTinh,Cccd,SoDienThoai,NgaySinh,DiaChi,Email,Tuoi,Avatar")] NhanVien nhanVien)
+        public async Task<IActionResult> Edit(int id, [Bind("MaNhanVien,TenNhanVien,GioiTinh,Cccd,SoDienThoai,NgaySinh,DiaChi,Email,Tuoi,Avatar")] NhanVien nhanVien, IFormFile AvatarFile)
         {
             if (id != nhanVien.MaNhanVien)
             {
@@ -96,7 +96,36 @@ namespace Fast_Food.Controllers
             {
                 try
                 {
-                    _context.Update(nhanVien);
+                    var existingNhanVien = await _context.NhanViens.FindAsync(id);// Lấy thông tin khách hàng từ database
+                    if (existingNhanVien == null)
+                    {
+                        return NotFound();
+                    }
+                    // Cập nhật thông tin khách hàng
+                    existingNhanVien.TenNhanVien = nhanVien.TenNhanVien;
+                    existingNhanVien.GioiTinh = nhanVien.GioiTinh;
+                    existingNhanVien.SoDienThoai = nhanVien.SoDienThoai;
+                    existingNhanVien.Cccd = nhanVien.Cccd;
+                    existingNhanVien.NgaySinh = nhanVien.NgaySinh;
+                    existingNhanVien.Email = nhanVien.Email;
+                    existingNhanVien.DiaChi = nhanVien.DiaChi;
+                    existingNhanVien.Tuoi = nhanVien.Tuoi;
+
+                    // Xử lý upload ảnh đại diện
+                    if (AvatarFile != null && AvatarFile.Length > 0)
+                    {
+                        var fileName = Path.GetFileName(AvatarFile.FileName);// Lấy tên file
+                        var filePath = Path.Combine("wwwroot/img/avatars", fileName);// Đường dẫn lưu file
+                                                                                     // Lưu ảnh vào thư mục server
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await AvatarFile.CopyToAsync(stream);
+                        }
+                        // Cập nhật đường dẫn ảnh trong database
+                        existingNhanVien.Avatar = "/img/avatars/" + fileName;
+                    }
+
+                    _context.Update(existingNhanVien);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -154,3 +183,4 @@ namespace Fast_Food.Controllers
         }
     }
 }
+    
